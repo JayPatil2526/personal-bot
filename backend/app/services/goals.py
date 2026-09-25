@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import math
 from datetime import date, datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.clock import local_now
 from app.db.models import Goal, Milestone, ProgressLog, Todo, TodoLog, User
 
 PRIORITY_BASE = {"low": 1.0, "medium": 2.0, "high": 3.0, "urgent": 4.0}
@@ -15,10 +15,7 @@ DEFAULT_DURATION_DAYS = 30
 
 
 def user_today(user: User) -> date:
-    try:
-        return datetime.now(ZoneInfo(user.timezone or "Asia/Kolkata")).date()
-    except Exception:  # noqa: BLE001
-        return datetime.now(timezone.utc).date()
+    return local_now(user.timezone).date()
 
 
 def visible_to(goal: Goal, character_id: int | None) -> bool:

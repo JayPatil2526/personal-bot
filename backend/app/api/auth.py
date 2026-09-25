@@ -3,6 +3,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.schemas import LoginIn, RegisterIn, TokenOut
+from app.core.clock import canonical_tz
 from app.core.security import create_access_token, get_current_user, hash_password, verify_password
 from app.db.models import User
 from app.db.session import get_db
@@ -20,7 +21,7 @@ def register(body: RegisterIn, db: Session = Depends(get_db)):
     email = body.email.lower()
     if db.scalar(select(User).where(func.lower(User.email) == email)):
         raise HTTPException(status.HTTP_409_CONFLICT, "An account with this email already exists")
-    user = User(email=email, name=body.name.strip(), password_hash=hash_password(body.password), timezone=body.timezone)
+    user = User(email=email, name=body.name.strip(), password_hash=hash_password(body.password), timezone=canonical_tz(body.timezone))
     db.add(user)
     db.commit()
     return TokenOut(access_token=create_access_token(user.id), user=user_to_dict(user))

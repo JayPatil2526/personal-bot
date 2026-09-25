@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Intent = Literal[
-    "chit_chat", "new_goal", "progress_report", "goal_question", "ask_info", "memory_question", "emotional"
+    "chit_chat", "new_goal", "progress_report", "goal_question", "ask_info", "memory_question", "emotional", "task_request"
 ]
 SafetyLevel = Literal["safe", "dual_use", "harmful", "self_harm"]
 Category = Literal[

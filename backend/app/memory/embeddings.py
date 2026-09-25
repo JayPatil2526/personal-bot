@@ -7,6 +7,9 @@ If embedding fails we return None and the retriever degrades to keyword + recenc
 To switch provider later, run `python -m app.memory.reembed`.
 """
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 
 from app.core.config import settings
 
@@ -54,6 +57,27 @@ def _with_any_key(call):
         except Exception as exc:  # noqa: BLE001
             last_error = exc
     raise last_error or RuntimeError("no embedding key")
+
+
+_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="embed")
+
+
+def embed_query(text: str, timeout: float | None = None) -> list[float] | None:
+    """Embedding for a live search. Gives up after `timeout` seconds (the provider sometimes stalls on
+    rate-limit retries) so the chat reply is never blocked; retrieval then falls back to keyword + recency."""
+    timeout = timeout if timeout is not None else settings.embedding_query_timeout_seconds
+    future = _pool.submit(embed_text, text)
+    try:
+        return future.result(timeout=timeout)
+    except FutureTimeout:
+        logger.warning("Query embedding took longer than %ss, searching without vectors", timeout)
+        return None
+
+
+def warm_up() -> None:
+    """Open the provider connection at startup (the first call is several seconds slower than the rest)."""
+    if _configured():
+        threading.Thread(target=lambda: embed_text("warm up"), daemon=True).start()
 
 
 def embed_text(text: str) -> list[float] | None:

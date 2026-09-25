@@ -29,6 +29,7 @@ from app.agents.schemas import (
     MergedFacts,
     ReflectionOutput,
 )
+from app.core.clock import user_tz
 from app.core.config import settings
 from app.db.models import (
     Character,
@@ -81,7 +82,7 @@ def bg_input(state: BgState, ctx: TurnContext) -> dict:
         select(func.count(Message.id)).where(Message.session_id == state["session_id"], Message.role == "user")
     ) or 0
     intent = state.get("intent")
-    if state.get("contains_new_info") or intent not in ("chit_chat", "memory_question") or user_msgs_in_session % 4 == 0:
+    if state.get("contains_new_info") or intent not in ("chit_chat", "memory_question", "task_request") or user_msgs_in_session % 4 == 0:
         jobs.append("extraction")
 
     per_category = db.execute(
@@ -227,12 +228,7 @@ def behaviour(state: BgState, ctx: TurnContext) -> dict:
     ).all()
     listing = "\n".join(f"- {c[:200]}" for c, _ in reversed(rows))
     out = llm.structured("behaviour", BehaviourOutput, [SystemMessage(prompts.BEHAVIOUR_SYSTEM), HumanMessage(listing)], ctx.usage)
-    try:
-        from zoneinfo import ZoneInfo
-
-        tz = ZoneInfo(user.timezone)
-    except Exception:  # noqa: BLE001
-        tz = timezone.utc
+    tz = user_tz(user.timezone)
     hours = Counter(ts.astimezone(tz).hour for _, ts in rows)
     total = db.scalar(
         select(func.count(Message.id)).join(ChatSession).where(ChatSession.user_id == user.id, Message.role == "user")
@@ -268,7 +264,7 @@ def adaptation(state: BgState, ctx: TurnContext) -> dict:
     if out.should_adapt and out.topic and out.topic.lower() not in {a.topic.lower() for a in existing}:
         db.add(CharacterAdaptation(user_id=user.id, character_id=c.id, topic=out.topic, twist=out.twist))
         db.commit()
-        chips.append({"type": "crew", "text": f"✨ {c.name} picked up: {out.topic}"})
+        chips.append({"type": "crew", "text": f"✨ {c.name} got into {out.topic} because of you"})
     return {"jobs": _pop(state), "chips": chips, "_note": f"adapt={out.should_adapt} · {out.topic}"}
 
 

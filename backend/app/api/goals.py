@@ -10,6 +10,7 @@ from app.agents import llm
 from app.agents.goal_agent import preview_goal
 from app.api.characters import _accessible
 from app.api.schemas import GoalCreateIn, GoalPatchIn, GoalPreviewIn, ToggleIn
+from app.core.clock import local_now
 from app.core.security import get_current_user
 from app.db.models import (
     AgentTrace, Character, Commitment, Episode, Fact, Goal, Milestone, MoodLog, ProgressLog, Todo, User,
@@ -184,17 +185,12 @@ def nudge(character_id: int | None = None, user: User = Depends(get_current_user
     due_promise = db.scalar(select(Commitment).where(
         Commitment.user_id == user.id, Commitment.status == "pending", Commitment.due_date <= today
     ).order_by(Commitment.due_date))
-    try:
-        from zoneinfo import ZoneInfo
-
-        local_now = datetime.now(ZoneInfo(user.timezone))
-    except Exception:  # noqa: BLE001
-        local_now = datetime.now(timezone.utc)
+    now_local = local_now(user.timezone)
     promise_note = (
         f"They promised '{due_promise.text}' (due {due_promise.due_date:%d %b}) — ask if they did it. "
         if due_promise else ""
     )
-    situation = f"Current local time: {local_now.strftime('%A %I:%M %p')}. " + promise_note + (
+    situation = f"Current local time: {now_local.strftime('%A %I:%M %p')}. " + promise_note + (
         f"Focus goal: {focus.title} ({focus.progress:.0f}% done, streak {focus.streak_current} days). "
         f"Pending today: {', '.join(t['title'] for t in pending[:3]) or 'nothing — all done!'}"
         if focus else "The user has no goals yet. Invite them to set one."

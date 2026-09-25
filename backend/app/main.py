@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, characters, dev, goals, insights, memory, sessions
 from app.core.config import settings
 from app.db.init_db import init_db
-from app.memory import reranker
+from app.memory import embeddings, reranker
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 async def lifespan(app: FastAPI):
     init_db()
     reranker.warm_up()
+    embeddings.warm_up()
     yield
 
 

@@ -12,7 +12,6 @@ import operator
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any, TypedDict
-from zoneinfo import ZoneInfo
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, StateGraph
@@ -22,6 +21,7 @@ from app.agents import llm, prompts
 from app.agents.context import TurnContext, traced
 from app.agents.schemas import ClassifierOutput, GoalPlan, GoalValidation
 from app.agents.tools import web_search as run_web_search
+from app.core.clock import local_now
 from app.core.config import settings
 from app.db.models import (
     AgentTrace,
@@ -95,6 +95,13 @@ class ChatState(TypedDict, total=False):
 
 
 FOLLOW_UP_MIN_AGE = timedelta(minutes=2)  # don't ask about a promise in the same breath it was made
+
+# Words that signal an ongoing goal rather than a one-off promise ("I want to…", "learn", "daily", Hinglish "seekhna", "roz").
+ONGOING_GOAL_CUES = re.compile(
+    r"\b(want|wanna|goal|habit|learn|seekh\w*|daily|every ?day|roz|har din|weekly|every week|start|become|improve|"
+    r"challenge|target|lose|gain|save|build|banna|banana|chahta|chahti)\b",
+    re.IGNORECASE,
+)
 
 HARMFUL_PATTERNS = re.compile(
     r"\b(bomb|explosive|detonat|make (a )?gun|poison someone|kill (him|her|someone|people)|"
@@ -189,10 +196,7 @@ def load_context(state: ChatState, ctx: TurnContext) -> dict:
         if p.due_date <= today and p.followed_up_at is None and now_utc - p.created_at > FOLLOW_UP_MIN_AGE
     ][:2]
 
-    try:
-        local_now = datetime.now(ZoneInfo(user.timezone))
-    except Exception:  # noqa: BLE001
-        local_now = datetime.now(timezone.utc)
+    now_local = local_now(user.timezone)
 
     return {
         "user": user,
@@ -207,7 +211,7 @@ def load_context(state: ChatState, ctx: TurnContext) -> dict:
         "others": others_view,
         "pending_promises": pending_view,
         "followups": followups,
-        "now_str": local_now.strftime("%A, %d %B %Y, %I:%M %p"),
+        "now_str": now_local.strftime("%A, %d %B %Y, %I:%M %p"),
         "_note": f"{'group of ' + str(len(crew)) if session.is_group else crew_chars[0].name} · {len(history)} history msgs · "
         f"{len(goals_view)} goals · {len(notes_view)} crew notes · {len(pending_view)} pending promises "
         f"({len(followups)} to follow up)",
@@ -242,13 +246,14 @@ def classify(state: ChatState, ctx: TurnContext) -> dict:
     needs_memory = out.needs_memory or out.intent in {
         "memory_question", "emotional", "goal_question", "progress_report", "new_goal"
     }
+    # A one-off promise ("kal subah 6 baje run karunga") is not a new goal, even if the classifier over-reaches:
+    # when promises were found, keep the goal only if the message also has ongoing-goal wording.
+    is_goal = out.intent == "new_goal" and not (new_promises and not ONGOING_GOAL_CUES.search(state["user_message"]))
     return {
         "intent": out.intent,
         "safety_level": out.safety_level,
         "safety_reason": out.safety_reason,
-        # A message that is only one-off promises is not a new goal, even if the classifier over-reaches
-        "goal_request": (out.goal_request.strip() or state["user_message"])
-        if out.intent == "new_goal" and not (new_promises and not out.goal_request.strip()) else "",
+        "goal_request": (out.goal_request.strip() or state["user_message"]) if is_goal else "",
         "progress_updates": updates,
         "new_promises": new_promises,
         "promise_updates": promise_updates,

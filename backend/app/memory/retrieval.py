@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.config import settings
 from app.db.models import Episode, Fact
 from app.memory import reranker
-from app.memory.embeddings import embed_text
+from app.memory.embeddings import embed_query
 
 W_REL, W_IMP, W_REC = 0.60, 0.25, 0.15
 RECENCY_HALF_LIFE_DAYS = 14
@@ -65,7 +65,7 @@ def retrieve(
     top_k = top_k or settings.retrieval_top_k
     n = settings.retrieval_candidates
     result = RetrievalResult()
-    vec = query_vec if query_vec is not None else embed_text(query)
+    vec = query_vec if query_vec is not None else embed_query(query)
     q_tokens = _tokens(query)
 
     candidates: list[dict] = []

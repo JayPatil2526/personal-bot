@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     embedding_model: str = "mistral-embed"
     gemini_embedding_model: str = "models/gemini-embedding-001"
     embedding_dim: int = 1024
+    embedding_query_timeout_seconds: float = 4.0
 
     reranker_provider: str = "local"  # local | none
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
