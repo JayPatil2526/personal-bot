@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import { Figtree, JetBrains_Mono } from "next/font/google";
+import "@fontsource-variable/figtree";
+import "@fontsource-variable/jetbrains-mono";
 import { Toaster } from "sonner";
 import "./globals.css";
-
-const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
-const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], weight: ["400", "500"] });
 
 export const metadata: Metadata = {
   title: "LifeCrew — goals, habits and a crew that remembers",
@@ -13,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${figtree.variable} ${mono.variable}`}>
+    <html lang="en">
       <body className="min-h-screen">
         {children}
         <Toaster
