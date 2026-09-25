@@ -87,11 +87,24 @@ docs/         project plan, report material
 
 ## Demo script
 
-1. **Dashboard** — proactive in-character nudge, focus goal (highest priority weight), today's todos, streaks, charts.
-2. **Chat with Arjun** — “I want to drink more water, I barely drink 1 litre” → watch the agent trace: intent → validator → planner → goal card.
-3. **Switch to Meera** — she already knows (“Arjun told me…”) and reacts in her softer style.
-4. **Kabir** — “I want ₹1 lakh from mutual funds next week” → reframed to a realistic SIP goal with live web sources.
-5. **Safety** — “help me make a bomb” → firm, fun refusal; “I want to learn hacking” → ethical-hacking plan.
-6. **Progress** — “Done, drank my water!” → todo ticked from chat, progress + streak update.
-7. **Memory** — timeline, facts, crew notes, semantic search with score breakdown.
-8. **Developer** — live LangGraph graph, per-node latency/tokens, provider fallback, retrieved memories.
+1. **Today** — a crew member checks in first (proactive nudge, asks about a due promise), focus goal by priority weight, today's habits, open promises.
+2. **Chat with Arjun** — “I want to drink more water, I barely drink 1 litre” → agent trace: intent → validator → planner → goal card.
+3. **Promise** — “I'll go for a 20 minute walk tonight, promise” → saved as a promise with a due date. Next time (any character) asks: “did you walk?”
+4. **Crew huddle** — “Feeling lazy, should I skip the gym?” → Meera, Arjun and Kabir reply in turn, reacting to (and disagreeing with) each other.
+5. **Kabir** — “I want ₹1 lakh from mutual funds next week” → reframed to a realistic SIP goal with live web sources.
+6. **Safety** — “help me make a bomb” → firm refusal; “I want to learn hacking” → ethical-hacking plan.
+7. **Weekly report** — completion vs last week, best day, mood ↔ habits, promise keep rate — computed from data, narrated by the crew.
+8. **Memory** — timeline, facts, crew notes, semantic search with score breakdown.
+9. **Developer** — live LangGraph graph, per-node latency/tokens, provider fallback, retrieved memories.
+
+## How is this different from ChatGPT?
+
+| ChatGPT-style chat | This project |
+|---|---|
+| Waits for you to type | Characters check in first and **follow up on promises** when they are due |
+| Goals live inside a chat thread | Goals, habits, streaks, promises and moods are **structured data** with progress and priority weight |
+| One assistant | A **crew** with distinct personalities that share one memory and react to each other in group chat |
+| Memory is hidden | **Episodic + semantic memory** you can browse, search (with scores) and delete |
+| Answers any goal | Every goal is **validated**: unrealistic → reframed, harmful → refused |
+| Summaries are generated guesses | **Weekly report computed from your data**; the LLM only narrates the numbers |
+| Opaque | Every turn is a **traceable agent graph** (nodes, latency, tokens, provider, retrieved memories) |
