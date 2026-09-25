@@ -4,7 +4,7 @@ PRESET_CHARACTERS = [
     {
         "name": "Arjun",
         "avatar": "🏋️",
-        "color": "orange",
+        "color": "saffron",
         "tagline": "Your no-excuses fitness coach",
         "age": 29,
         "city": "Pune",
@@ -35,7 +35,7 @@ PRESET_CHARACTERS = [
     {
         "name": "Meera",
         "avatar": "🌿",
-        "color": "emerald",
+        "color": "sage",
         "tagline": "Your calm, mindful friend",
         "age": 26,
         "city": "Bengaluru",
@@ -65,7 +65,7 @@ PRESET_CHARACTERS = [
     {
         "name": "Kabir",
         "avatar": "🧠",
-        "color": "sky",
+        "color": "indigo",
         "tagline": "Your witty career & money mentor",
         "age": 35,
         "city": "Mumbai",

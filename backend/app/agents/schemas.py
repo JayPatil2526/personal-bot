@@ -20,6 +20,16 @@ class ProgressUpdate(BaseModel):
     note: str = Field("", description="Short quote/paraphrase of what the user reported")
 
 
+class NewPromise(BaseModel):
+    text: str = Field(description="What the user committed to, short, second person, e.g. 'Go to the gym'")
+    due_in_days: int = Field(0, ge=0, le=30, description="0 = today/tonight, 1 = tomorrow, etc.")
+
+
+class PromiseUpdate(BaseModel):
+    promise_id: int = Field(description="ID from the PENDING PROMISES list")
+    kept: bool = Field(description="True if the user says they did it, False if they say they didn't")
+
+
 class ClassifierOutput(BaseModel):
     intent: Intent = Field(description="Main intent of the latest user message")
     safety_level: SafetyLevel = Field(
@@ -34,6 +44,14 @@ class ClassifierOutput(BaseModel):
         default_factory=list,
         description="Todos/milestones the user says they COMPLETED in THIS message (use the given IDs). "
         "Skipped / missed / forgot / didn't do → NOT a progress update, leave it out. Empty list if unsure.",
+    )
+    new_promises: list[NewPromise] = Field(
+        default_factory=list,
+        description="Concrete commitments the user makes about a FUTURE action ('I will go to the gym tomorrow', "
+        "'I'll call mom tonight', 'promise I'll sleep by 11'). Not wishes/goals, not past actions.",
+    )
+    promise_updates: list[PromiseUpdate] = Field(
+        default_factory=list, description="Outcomes the user reports for PENDING PROMISES listed below (use their IDs)"
     )
     needs_memory: bool = Field(description="True if answering well needs past memories about the user")
     memory_query: str = Field("", description="Short search query to find relevant memories (empty if not needed)")
@@ -155,3 +173,17 @@ class CharacterDraft(BaseModel):
 
 class Nudge(BaseModel):
     message: str = Field(description="One or two short in-character sentences")
+
+
+class CharacterComment(BaseModel):
+    name: str
+    comment: str = Field(description="One or two sentences in this character's own voice reacting to the week")
+
+
+class WeeklyNarrative(BaseModel):
+    headline: str = Field(description="Short punchy title for the week, max 8 words")
+    summary: str = Field(description="2-3 sentences, second person, grounded ONLY in the given numbers")
+    wins: list[str] = Field(description="2-3 concrete wins from the data", max_length=4)
+    struggles: list[str] = Field(description="1-3 concrete struggles from the data", max_length=3)
+    focus_next_week: str = Field(description="One specific, realistic focus for next week")
+    crew: list[CharacterComment] = Field(description="One comment per crew member, in their personality")

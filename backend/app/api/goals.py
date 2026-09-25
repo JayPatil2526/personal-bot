@@ -11,7 +11,9 @@ from app.agents.goal_agent import preview_goal
 from app.api.characters import _accessible
 from app.api.schemas import GoalCreateIn, GoalPatchIn, GoalPreviewIn, ToggleIn
 from app.core.security import get_current_user
-from app.db.models import AgentTrace, Character, Episode, Fact, Goal, Milestone, MoodLog, ProgressLog, Todo, User
+from app.db.models import (
+    AgentTrace, Character, Commitment, Episode, Fact, Goal, Milestone, MoodLog, ProgressLog, Todo, User,
+)
 from app.db.session import get_db
 from app.services import goals as goal_svc
 
@@ -140,6 +142,10 @@ def dashboard(user: User = Depends(get_current_user), db: Session = Depends(get_
                  "done": per_day.get((today - timedelta(days=i)).isoformat(), 0)} for i in range(13, -1, -1)]
 
     episodes = db.scalars(select(Episode).where(Episode.user_id == user.id).order_by(Episode.occurred_at.desc()).limit(5)).all()
+    from app.api.insights import commitment_to_dict
+
+    pending = db.scalars(select(Commitment).where(Commitment.user_id == user.id, Commitment.status == "pending")
+                         .order_by(Commitment.due_date).limit(6)).all()
     return {
         "user": {"name": user.name, "patterns": user.patterns or {}},
         "today": today.isoformat(),
@@ -158,6 +164,7 @@ def dashboard(user: User = Depends(get_current_user), db: Session = Depends(get_
         "todos": todos,
         "activity": activity,
         "moods": [{"at": m.created_at.isoformat(), "mood": m.mood, "intensity": m.intensity} for m in moods],
+        "promises": [commitment_to_dict(c, today) for c in pending],
         "recent_memories": [{"id": e.id, "summary": e.summary, "emotion": e.emotion, "when": e.occurred_at.isoformat(),
                              "kind": e.kind} for e in episodes],
     }
@@ -174,13 +181,20 @@ def nudge(character_id: int | None = None, user: User = Depends(get_current_user
     active = goal_svc.load_goals(db, user.id)
     focus = goal_svc.focus_goal(active, today, character.id)
     pending = [t for t in goal_svc.todays_todos(active, today) if not t["done_today"]]
+    due_promise = db.scalar(select(Commitment).where(
+        Commitment.user_id == user.id, Commitment.status == "pending", Commitment.due_date <= today
+    ).order_by(Commitment.due_date))
     try:
         from zoneinfo import ZoneInfo
 
         local_now = datetime.now(ZoneInfo(user.timezone))
     except Exception:  # noqa: BLE001
         local_now = datetime.now(timezone.utc)
-    situation = f"Current local time: {local_now.strftime('%A %I:%M %p')}. " + (
+    promise_note = (
+        f"They promised '{due_promise.text}' (due {due_promise.due_date:%d %b}) — ask if they did it. "
+        if due_promise else ""
+    )
+    situation = f"Current local time: {local_now.strftime('%A %I:%M %p')}. " + promise_note + (
         f"Focus goal: {focus.title} ({focus.progress:.0f}% done, streak {focus.streak_current} days). "
         f"Pending today: {', '.join(t['title'] for t in pending[:3]) or 'nothing — all done!'}"
         if focus else "The user has no goals yet. Invite them to set one."

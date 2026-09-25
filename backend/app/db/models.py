@@ -130,12 +130,14 @@ class ChatSession(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    character_id: Mapped[int] = mapped_column(ForeignKey("characters.id", ondelete="CASCADE"))
+    # NULL for crew group chats (all characters in one thread)
+    character_id: Mapped[int | None] = mapped_column(ForeignKey("characters.id", ondelete="CASCADE"), nullable=True)
+    is_group: Mapped[bool] = mapped_column(Boolean, default=False)
     title: Mapped[str] = mapped_column(String(200), default="New chat")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
-    character: Mapped[Character] = relationship()
+    character: Mapped[Character | None] = relationship()
     messages: Mapped[list["Message"]] = relationship(
         back_populates="session", cascade="all, delete-orphan", order_by="Message.id"
     )
@@ -243,6 +245,42 @@ class ProgressLog(Base):
     new_progress: Mapped[float] = mapped_column(Float)
     source: Mapped[str] = mapped_column(String(16))  # todo | chat | milestone | manual
     note: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Commitment(Base):
+    """A promise the user made in chat ("I'll go to the gym tomorrow"), followed up by the crew when due."""
+
+    __tablename__ = "commitments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    character_id: Mapped[int | None] = mapped_column(ForeignKey("characters.id", ondelete="SET NULL"), nullable=True)
+    session_id: Mapped[int | None] = mapped_column(ForeignKey("chat_sessions.id", ondelete="SET NULL"), nullable=True)
+    goal_id: Mapped[int | None] = mapped_column(ForeignKey("goals.id", ondelete="SET NULL"), nullable=True)
+    text: Mapped[str] = mapped_column(String(300))
+    due_date: Mapped[date] = mapped_column(Date)
+    status: Mapped[str] = mapped_column(String(16), default="pending")  # pending | kept | broken
+    followed_up_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    followed_up_by: Mapped[int | None] = mapped_column(ForeignKey("characters.id", ondelete="SET NULL"), nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    character: Mapped[Character | None] = relationship(foreign_keys=[character_id])
+
+
+class WeeklyReport(Base):
+    """Cached weekly insight report (computed stats + LLM narrative)."""
+
+    __tablename__ = "weekly_reports"
+    __table_args__ = (UniqueConstraint("user_id", "period_end"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    period_start: Mapped[date] = mapped_column(Date)
+    period_end: Mapped[date] = mapped_column(Date)
+    stats: Mapped[dict] = mapped_column(JSON, default=dict)
+    narrative: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

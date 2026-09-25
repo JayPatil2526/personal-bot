@@ -11,7 +11,21 @@ def init_db() -> None:
     with engine.begin() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
     Base.metadata.create_all(bind=engine)
+    migrate()
     seed_characters()
+
+
+# Idempotent in-place migrations for tables created by earlier versions (create_all never alters tables).
+MIGRATIONS = [
+    "ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS is_group BOOLEAN NOT NULL DEFAULT FALSE",
+    "ALTER TABLE chat_sessions ALTER COLUMN character_id DROP NOT NULL",
+]
+
+
+def migrate() -> None:
+    with engine.begin() as conn:
+        for sql in MIGRATIONS:
+            conn.execute(text(sql))
 
 
 def seed_characters() -> None:

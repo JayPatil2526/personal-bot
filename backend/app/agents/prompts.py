@@ -30,8 +30,17 @@ If they say they skipped, missed, forgot or failed something, that is NOT progre
 (their mood/struggle is captured elsewhere).
 Set needs_web_search only for things needing fresh real-world info.
 
+Promises vs progress: anything in FUTURE tense ("I will", "I'll", "I promise", "going to", "tonight", "tomorrow",
+"before lunch today") is a new_promise and NEVER a progress_update. Only PAST tense ("I did", "drank", "went", "done")
+counts as progress. Record one new_promise per distinct commitment. A one-off promise ("I'll sleep before 11 tonight",
+"tomorrow I'll do 30 pushups") is NOT a new_goal — only use new_goal when they want an ongoing goal/habit/target. If the user reports doing/not doing
+one of the PENDING PROMISES below, add a promise_update with its ID.
+
 USER'S ACTIVE TODOS AND MILESTONES:
 {todo_block}
+
+PENDING PROMISES:
+{promise_block}
 """
 
 VALIDATOR_SYSTEM = """You are the goal validation agent of a lifestyle & goal-tracking companion. Today is {today}.
@@ -92,6 +101,28 @@ def todo_block(goals_view: list[dict]) -> str:
             if not m["done"]:
                 lines.append(f"  - milestone_id={m['id']}: {m['title']}")
     return "\n".join(lines)
+
+
+def promise_block(pending: list[dict]) -> str:
+    if not pending:
+        return "(none)"
+    return "\n".join(f"- promise_id={p['id']}: {p['text']} (due {p['due_date']}, told to {p['told_to']})" for p in pending)
+
+
+def group_block(name: str, replies_so_far: list[dict]) -> str:
+    earlier = "\n".join(f"- {r['name']}: {r['text']}" for r in replies_so_far) or "(you are replying first)"
+    return f"""This is a GROUP CHAT: the user and their whole crew are in one thread. You are {name}.
+Keep your message SHORT (1-3 sentences). Don't repeat what your friends already said — react to it, build on it,
+tease or respectfully disagree in your own style, then add your own angle. Never write other characters' lines.
+What your friends already said this turn:
+{earlier}"""
+
+
+def strip_speaker_prefix(text: str, name: str) -> str:
+    for prefix in (f"{name}:", f"[{name}]:", f"**{name}:**", f"**{name}**:"):
+        if text.startswith(prefix):
+            return text[len(prefix):].lstrip()
+    return text
 
 
 BOND_GUIDANCE = {
@@ -177,6 +208,7 @@ You may naturally reference what they said ("Arjun told me you..."), and react i
 
 ## What just happened in the app this turn
 {ctx['situation'] or 'Normal conversation.'}
+{ctx.get('group') or ''}
 
 ## Rules
 - Reply like a real friend in chat: 1-4 short paragraphs, no headings, no markdown tables. Lists only when giving a plan or options.
@@ -228,6 +260,18 @@ def situation_for(state: dict) -> str:
         parts.append(
             f"PROGRESS LOGGED: {p['label']} → goal '{p['goal_title']}' now {p['progress']:.0f}% "
             f"(streak {p.get('streak', 0)} days). Celebrate it in your style."
+        )
+    for p in state.get("promise_results") or []:
+        if p["kind"] == "new":
+            parts.append(f"PROMISE SAVED: the user committed to '{p['text']}' (due {p['due']}). Acknowledge it and say you'll check in.")
+        else:
+            parts.append(f"PROMISE {'KEPT' if p['kind'] == 'kept' else 'MISSED'}: '{p['text']}'. "
+                         + ("Celebrate it genuinely." if p["kind"] == "kept" else "Be understanding but help them plan a retry."))
+    for f in state.get("followups") or []:
+        when = "today" if f["days_overdue"] == 0 else f"{f['days_overdue']} day(s) ago"
+        parts.append(
+            f"FOLLOW-UP DUE: the user promised '{f['text']}' (due {when}, told to {f['told_to']}). Early in your reply, "
+            "naturally ask whether they did it — unless their message already answers that."
         )
     results = state.get("search_results") or []
     if results:

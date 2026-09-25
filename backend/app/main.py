@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, characters, dev, goals, memory, sessions
+from app.api import auth, characters, dev, goals, insights, memory, sessions
 from app.core.config import settings
 from app.db.init_db import init_db
 from app.memory import reranker
@@ -33,7 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth.router, characters.router, sessions.router, goals.router, memory.router, dev.router):
+for r in (auth.router, characters.router, sessions.router, goals.router, insights.router, memory.router, dev.router):
     app.include_router(r, prefix="/api")
 
 

@@ -2,7 +2,7 @@
 
     python -m app.seed.demo            # creates demo@lifecrew.app / demo1234 (re-creates if it exists)
 
-Only goals, todo completions and mood logs are backfilled. Memories (episodes/facts) are NOT
+Only goals, todo completions, mood logs and a few resolved promises are backfilled. Memories (episodes/facts) are NOT
 fabricated here — they are created live by the agent when you chat during the demo.
 """
 import random
@@ -12,7 +12,7 @@ from sqlalchemy import delete, select
 
 from app.core.security import hash_password
 from app.db.init_db import init_db
-from app.db.models import Character, Goal, MoodLog, ProgressLog, TodoLog, User
+from app.db.models import Character, Commitment, MoodLog, ProgressLog, TodoLog, User
 from app.db.session import SessionLocal
 from app.services import goals as goal_svc
 
@@ -114,6 +114,20 @@ def main() -> None:
                 db.add(ProgressLog(goal_id=goal.id, delta=0, new_progress=goal.progress, source="todo",
                                    note=f"Day {offset + 1}", created_at=datetime.combine(day, datetime.min.time(), tzinfo=timezone.utc) + timedelta(hours=20)))
             goal_svc.refresh_goal(db, goal, today, "manual", "Demo backfill")
+
+        # A few past promises made in chat (kept / missed) so the promise tracker has history
+        for text, days_ago, status, coach in [
+            ("Go for a 20 min walk after dinner", 9, "kept", "Arjun"),
+            ("Sleep before 11:30 pm", 6, "broken", "Meera"),
+            ("Read the index-fund article Kabir sent", 4, "kept", "Kabir"),
+            ("No phone for the first 20 minutes after waking", 2, "kept", "Meera"),
+            ("Finish the 5 km run on Sunday", 1, "broken", "Arjun"),
+        ]:
+            due = today - timedelta(days=days_ago)
+            db.add(Commitment(user_id=user.id, character_id=chars[coach].id, text=text, due_date=due, status=status,
+                              created_at=datetime.combine(due - timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc),
+                              resolved_at=datetime.combine(due, datetime.min.time(), tzinfo=timezone.utc) + timedelta(hours=21),
+                              followed_up_at=datetime.combine(due, datetime.min.time(), tzinfo=timezone.utc) + timedelta(hours=20)))
 
         for offset in range(13):
             day = start + timedelta(days=offset)

@@ -45,7 +45,8 @@ class CharacterDraftIn(BaseModel):
 
 
 class SessionIn(BaseModel):
-    character_id: int
+    character_id: int | None = None
+    group: bool = False
 
 
 class ChatIn(BaseModel):
@@ -92,3 +93,7 @@ class GoalPatchIn(BaseModel):
 
 class ToggleIn(BaseModel):
     done: bool = True
+
+
+class CommitmentPatchIn(BaseModel):
+    status: Literal["pending", "kept", "broken"]
