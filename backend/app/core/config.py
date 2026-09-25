@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     mistral_api_key: str = ""
     gemini_api_key: str = ""
+    llm_primary: str = "mistral"  # mistral | gemini — the other one is the automatic fallback
     llm_reply_model: str = "mistral-large-latest"
     llm_fast_model: str = "mistral-small-latest"
     llm_fallback_model: str = "gemini-2.5-flash"

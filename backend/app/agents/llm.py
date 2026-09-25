@@ -144,6 +144,8 @@ def _providers(task: str):
         chain.append(("gemini", lambda: _gemini(task)))
     if not chain:
         raise LLMUnavailable("No LLM API key configured (MISTRAL_API_KEY / GEMINI_API_KEY)")
+    if settings.llm_primary.lower() == "gemini":
+        chain.reverse()
     healthy = [c for c in chain if _open_until.get(c[0], 0) <= now]
     return healthy or chain
 
