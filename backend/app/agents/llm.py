@@ -1,7 +1,7 @@
 """Single entry point for every LLM call.
 
 Task → model routing (large model only for replies, small model for classify/extract/validate),
-automatic fallback Mistral → Gemini, and per-call usage tracking for the developer traces.
+automatic fallback across keys and providers (Mistral ↔ Gemini), and per-call usage tracking for the developer traces.
 """
 from __future__ import annotations
 
@@ -83,69 +83,95 @@ class LLMUnavailable(RuntimeError):
 _model_cache: dict[tuple, object] = {}
 
 
-def _mistral(task: str):
+def _max_tokens(big: bool) -> int:
+    return settings.llm_reply_max_tokens if big else settings.llm_task_max_tokens
+
+
+def _mistral(task: str, key_index: int):
     temperature, big = TASKS.get(task, (0.3, False))
     model = settings.llm_reply_model if big else settings.llm_fast_model
-    key = ("mistral", model, temperature)
-    if key not in _model_cache:
+    cache_key = ("mistral", key_index, model, temperature)
+    if cache_key not in _model_cache:
         from langchain_mistralai import ChatMistralAI
 
-        _model_cache[key] = ChatMistralAI(
+        _model_cache[cache_key] = ChatMistralAI(
             model=model,
-            api_key=settings.mistral_api_key,
+            api_key=settings.mistral_keys[key_index],
             temperature=temperature,
+            max_tokens=_max_tokens(big),
             timeout=settings.llm_timeout_seconds,
             max_retries=1,
         )
-    return _model_cache[key], model
+    return _model_cache[cache_key], model
 
 
-def _gemini(task: str):
+def _gemini(task: str, key_index: int):
     temperature, big = TASKS.get(task, (0.3, False))
     model = settings.llm_fallback_model if big else settings.llm_fallback_fast_model
-    key = ("gemini", model, temperature)
-    if key not in _model_cache:
+    cache_key = ("gemini", key_index, model, temperature)
+    if cache_key not in _model_cache:
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        _model_cache[key] = ChatGoogleGenerativeAI(
+        _model_cache[cache_key] = ChatGoogleGenerativeAI(
             model=model,
-            google_api_key=settings.gemini_api_key,
+            google_api_key=settings.gemini_keys[key_index],
             temperature=temperature,
+            max_output_tokens=_max_tokens(big),
             timeout=settings.llm_timeout_seconds,
             max_retries=1,
         )
-    return _model_cache[key], model
+    return _model_cache[cache_key], model
 
 
-# Circuit breaker: a provider that fails with an auth/quota error is skipped for a while instead of
-# adding a failed round-trip to every call.
+# Circuit breaker, per key: a key that fails with an auth/quota/rate-limit error is skipped for a while
+# instead of adding a failed round-trip to every call.
 _BREAKER_SECONDS = 600
 _open_until: dict[str, float] = {}
 
 
-def _trip_if_fatal(provider: str, exc: Exception) -> None:
+_FATAL_MARKERS = (
+    "401", "403", "429", "unauthorized", "invalid api key", "api key not valid", "api_key_invalid",
+    "permission_denied", "quota", "resource_exhausted", "rate limit",
+)
+
+
+def _trip_if_fatal(slot: str, exc: Exception) -> None:
     msg = str(exc).lower()
-    if any(k in msg for k in ("401", "403", "invalid api key", "unauthorized", "429", "quota")):
-        _open_until[provider] = time.time() + _BREAKER_SECONDS
-        logger.warning("Circuit open for %s for %ss", provider, _BREAKER_SECONDS)
+    if any(k in msg for k in _FATAL_MARKERS):
+        _open_until[slot] = time.time() + _BREAKER_SECONDS
+        logger.warning("Circuit open for %s for %ss", slot, _BREAKER_SECONDS)
+
+
+def _slot_name(provider: str, key_index: int) -> str:
+    """'mistral' for the first key, 'mistral#2', 'mistral#3' … for extra keys."""
+    return provider if key_index == 0 else f"{provider}#{key_index + 1}"
+
+
+def _key_counts() -> dict[str, int]:
+    return {"mistral": len(settings.mistral_keys), "gemini": len(settings.gemini_keys)}
 
 
 def provider_status() -> dict[str, str]:
+    """A provider is 'open' (skipped) only when every one of its keys is open."""
     now = time.time()
-    return {p: ("open" if _open_until.get(p, 0) > now else "closed") for p in ("mistral", "gemini")}
+    status = {}
+    for provider, count in _key_counts().items():
+        slots = [_slot_name(provider, i) for i in range(count)]
+        status[provider] = "open" if slots and all(_open_until.get(s, 0) > now for s in slots) else "closed"
+    return status
 
 
 def _providers(task: str):
+    """Ordered (slot, factory) chain: every key of the primary provider, then every key of the fallback."""
     now = time.time()
+    factories = {"mistral": _mistral, "gemini": _gemini}
+    order = ["gemini", "mistral"] if settings.llm_primary.lower() == "gemini" else ["mistral", "gemini"]
     chain = []
-    if settings.mistral_api_key:
-        chain.append(("mistral", lambda: _mistral(task)))
-    if settings.gemini_api_key:
-        chain.append(("gemini", lambda: _gemini(task)))
+    for provider in order:
+        for i in range(_key_counts()[provider]):
+            chain.append((_slot_name(provider, i), lambda f=factories[provider], i=i: f(task, i)))
     if not chain:
         raise LLMUnavailable("No LLM API key configured (MISTRAL_API_KEY / GEMINI_API_KEY)")
-    if settings.llm_primary.lower() == "gemini":
-        chain.reverse()
     healthy = [c for c in chain if _open_until.get(c[0], 0) <= now]
     return healthy or chain
 

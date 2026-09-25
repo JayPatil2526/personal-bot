@@ -25,6 +25,7 @@ interface DevConfig {
   mistral_configured: boolean;
   gemini_configured: boolean;
   provider_circuits: Record<string, "open" | "closed">;
+  key_counts?: Record<string, number>;
 }
 interface Stats {
   turns: number;
@@ -170,10 +171,12 @@ export default function DeveloperPage() {
                     const configured = p === "mistral" ? config.mistral_configured : config.gemini_configured;
                     const open = config.provider_circuits?.[p] === "open";
                     const ok = configured && !open;
+                    const keys = config.key_counts?.[p] ?? 0;
                     return (
                       <Badge key={p} className={ok ? "border-sage-line bg-sage-soft text-sage" : "border-rose-line bg-rose-soft text-rose"}>
                         <span className={cn("h-1.5 w-1.5 rounded-full", ok ? "bg-sage" : "bg-rose")} />
-                        {p} {!configured ? "· no key" : open ? "· circuit open, using fallback" : "· healthy"}
+                        {p}
+                        {keys > 1 && ` · ${keys} keys`} {!configured ? "· no key" : open ? "· circuit open, using fallback" : "· healthy"}
                       </Badge>
                     );
                   })}

@@ -12,7 +12,7 @@ from app.core.config import settings
 
 logger = logging.getLogger("lifecoach.embeddings")
 
-_model = None
+_models: dict[int, object] = {}
 
 
 def provider() -> str:
@@ -23,22 +23,37 @@ def model_name() -> str:
     return settings.gemini_embedding_model if provider() == "gemini" else settings.embedding_model
 
 
-def _get_model():
-    global _model
-    if _model is None:
+def _keys() -> list[str]:
+    return settings.gemini_keys if provider() == "gemini" else settings.mistral_keys
+
+
+def _get_model(key_index: int):
+    if key_index not in _models:
+        key = _keys()[key_index]
         if provider() == "gemini":
             from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-            _model = GoogleGenerativeAIEmbeddings(model=settings.gemini_embedding_model, google_api_key=settings.gemini_api_key)
+            _models[key_index] = GoogleGenerativeAIEmbeddings(model=settings.gemini_embedding_model, google_api_key=key)
         else:
             from langchain_mistralai import MistralAIEmbeddings
 
-            _model = MistralAIEmbeddings(model=settings.embedding_model, api_key=settings.mistral_api_key, max_retries=2)
-    return _model
+            _models[key_index] = MistralAIEmbeddings(model=settings.embedding_model, api_key=key, max_retries=2)
+    return _models[key_index]
 
 
 def _configured() -> bool:
-    return bool(settings.gemini_api_key if provider() == "gemini" else settings.mistral_api_key)
+    return bool(_keys())
+
+
+def _with_any_key(call):
+    """Try each key of the embedding provider in turn (same model, so the vectors stay comparable)."""
+    last_error: Exception | None = None
+    for i in range(len(_keys())):
+        try:
+            return call(_get_model(i))
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+    raise last_error or RuntimeError("no embedding key")
 
 
 def embed_text(text: str) -> list[float] | None:
@@ -46,8 +61,8 @@ def embed_text(text: str) -> list[float] | None:
         return None
     try:
         if provider() == "gemini":
-            return _get_model().embed_query(text.strip(), output_dimensionality=settings.embedding_dim)
-        return _get_model().embed_query(text.strip())
+            return _with_any_key(lambda m: m.embed_query(text.strip(), output_dimensionality=settings.embedding_dim))
+        return _with_any_key(lambda m: m.embed_query(text.strip()))
     except Exception as exc:  # noqa: BLE001
         logger.error("Embedding failed: %s", exc)
         return None
@@ -60,7 +75,7 @@ def embed_many(texts: list[str]) -> list[list[float] | None]:
     if provider() == "gemini":
         return [embed_text(t) for t in clean]
     try:
-        return _get_model().embed_documents(clean)
+        return _with_any_key(lambda m: m.embed_documents(clean))
     except Exception as exc:  # noqa: BLE001
         logger.error("Batch embedding failed: %s", exc)
         return [embed_text(t) for t in clean]

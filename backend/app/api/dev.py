@@ -33,8 +33,9 @@ def config(user: User = Depends(get_current_user)):
         "reranker": settings.reranker_model if reranker.enabled() else "disabled",
         "retrieval": {"candidates": settings.retrieval_candidates, "top_k": settings.retrieval_top_k,
                       "max_distance": settings.max_distance, "weights": {"relevance": 0.6, "importance": 0.25, "recency": 0.15}},
-        "mistral_configured": bool(settings.mistral_api_key),
-        "gemini_configured": bool(settings.gemini_api_key),
+        "mistral_configured": bool(settings.mistral_keys),
+        "gemini_configured": bool(settings.gemini_keys),
+        "key_counts": {"mistral": len(settings.mistral_keys), "gemini": len(settings.gemini_keys)},
         "provider_circuits": llm.provider_status(),
     }
 

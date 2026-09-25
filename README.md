@@ -7,7 +7,7 @@ progress and streaks, and nudges you toward them — each character in their own
 |---|---|
 | **Agent** | LangGraph foreground graph (intent + safety classifier → goal validator → web search → planner → progress update → hybrid memory retrieval → streamed reply) and a background memory graph (extraction with dedup, compression, behaviour analysis, character adaptation, life events, weekly reflection) |
 | **Memory** | Episodic + semantic memory in PostgreSQL/pgvector (HNSW), keyword boost, local cross-encoder reranker, score = 0.6·relevance + 0.25·importance + 0.15·recency |
-| **LLMs** | Mistral (primary) → Gemini (automatic fallback, circuit breaker) |
+| **LLMs** | Mistral Small / Gemini Flash-Lite, multi-key rotation and automatic provider fallback (circuit breaker) |
 | **Backend** | FastAPI, SQLAlchemy, JWT auth, Server-Sent Events |
 | **Frontend** | Next.js 15, Tailwind CSS v4, Framer Motion, Recharts, React Flow |
 
@@ -60,9 +60,11 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build  # dev
 
 | Variable | Default | Notes |
 |---|---|---|
-| `MISTRAL_API_KEY` / `GEMINI_API_KEY` | – | At least one is required. Mistral is tried first; Gemini is the fallback. |
-| `LLM_REPLY_MODEL` / `LLM_FAST_MODEL` | `mistral-large-latest` / `mistral-small-latest` | Large model only for replies; small for classify/extract/plan |
-| `LLM_FALLBACK_MODEL` / `LLM_FALLBACK_FAST_MODEL` | `gemini-2.5-flash` / `gemini-2.5-flash-lite` | |
+| `MISTRAL_API_KEY` / `GEMINI_API_KEY` | – | At least one is required. Several keys allowed, comma-separated (`key1,key2`): a key that hits its limit is skipped and the next one is used |
+| `LLM_PRIMARY` | `mistral` | Provider tried first (`mistral` or `gemini`); the other is the fallback |
+| `LLM_REPLY_MODEL` / `LLM_FAST_MODEL` | `mistral-small-latest` / `mistral-small-latest` | Small models to keep token cost low; set the reply model to `mistral-large-latest` for richer replies |
+| `LLM_FALLBACK_MODEL` / `LLM_FALLBACK_FAST_MODEL` | `gemini-2.5-flash-lite` / `gemini-2.5-flash-lite` | |
+| `LLM_REPLY_MAX_TOKENS` / `LLM_TASK_MAX_TOKENS` | `700` / `2000` | Output-token caps per reply / per structured task |
 | `EMBEDDING_PROVIDER` | `mistral` | `mistral` (mistral-embed) or `gemini` (gemini-embedding-001 @1024d). Keep it fixed per database; after switching run `python -m app.memory.reembed` |
 | `RERANKER_PROVIDER` | `local` | `local` = HF `cross-encoder/ms-marco-MiniLM-L-6-v2` on CPU, `none` = cosine only |
 

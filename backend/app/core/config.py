@@ -24,13 +24,18 @@ class Settings(BaseSettings):
     postgres_host: str = "localhost"
     postgres_port: int = 5433
 
+    # One or more keys per provider, comma-separated (MISTRAL_API_KEY=key1,key2). When a key hits its
+    # rate limit or quota, the next key of the same provider is tried before switching provider.
     mistral_api_key: str = ""
     gemini_api_key: str = ""
     llm_primary: str = "mistral"  # mistral | gemini — the other one is the automatic fallback
-    llm_reply_model: str = "mistral-large-latest"
+    # Small, low-cost models by default; replies can be switched to a larger model from .env.
+    llm_reply_model: str = "mistral-small-latest"
     llm_fast_model: str = "mistral-small-latest"
-    llm_fallback_model: str = "gemini-2.5-flash"
+    llm_fallback_model: str = "gemini-2.5-flash-lite"
     llm_fallback_fast_model: str = "gemini-2.5-flash-lite"
+    llm_reply_max_tokens: int = 700  # a chat reply is a few short paragraphs at most
+    llm_task_max_tokens: int = 2000  # classify / plan / extract (structured JSON)
     llm_timeout_seconds: int = 45
     # Embeddings must come from ONE provider per database (vectors from different models are not comparable).
     embedding_provider: str = "mistral"  # mistral | gemini
@@ -58,8 +63,20 @@ class Settings(BaseSettings):
         )
 
     @property
+    def mistral_keys(self) -> list[str]:
+        return _split_keys(self.mistral_api_key)
+
+    @property
+    def gemini_keys(self) -> list[str]:
+        return _split_keys(self.gemini_api_key)
+
+    @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+
+def _split_keys(value: str) -> list[str]:
+    return [k.strip() for k in value.split(",") if k.strip()]
 
 
 @lru_cache
