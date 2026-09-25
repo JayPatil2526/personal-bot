@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 
 from app.agents import llm
 from app.agents.goal_agent import preview_goal
-from app.agents.schemas import Nudge
 from app.api.characters import _accessible
 from app.api.schemas import GoalCreateIn, GoalPatchIn, GoalPreviewIn, ToggleIn
 from app.core.security import get_current_user
@@ -175,19 +174,24 @@ def nudge(character_id: int | None = None, user: User = Depends(get_current_user
     active = goal_svc.load_goals(db, user.id)
     focus = goal_svc.focus_goal(active, today, character.id)
     pending = [t for t in goal_svc.todays_todos(active, today) if not t["done_today"]]
-    situation = (
+    try:
+        from zoneinfo import ZoneInfo
+
+        local_now = datetime.now(ZoneInfo(user.timezone))
+    except Exception:  # noqa: BLE001
+        local_now = datetime.now(timezone.utc)
+    situation = f"Current local time: {local_now.strftime('%A %I:%M %p')}. " + (
         f"Focus goal: {focus.title} ({focus.progress:.0f}% done, streak {focus.streak_current} days). "
         f"Pending today: {', '.join(t['title'] for t in pending[:3]) or 'nothing — all done!'}"
         if focus else "The user has no goals yet. Invite them to set one."
     )
     try:
-        out = llm.structured("nudge", Nudge, [
+        message = llm.text("nudge", [
             SystemMessage(f"You are {character.name}. Personality: {character.personality}. Style: {character.speaking_style}. "
-                          f"Motivation style: {character.motivation_style}. Write a short proactive check-in message "
-                          f"to {user.name.split()[0]} (they just opened the app)."),
+                          f"Motivation style: {character.motivation_style}. Write ONE short proactive check-in message "
+                          f"(max 2 sentences, in character, no quotes) to {user.name.split()[0]} who just opened the app."),
             HumanMessage(situation),
-        ])
-        message = out.message
+        ]).strip().strip('"')
     except llm.LLMUnavailable:
         message = f"Hey {user.name.split()[0]}! Ready to crush today's goals?"
     return {"character": {"id": character.id, "name": character.name, "avatar": character.avatar, "color": character.color},

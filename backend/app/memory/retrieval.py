@@ -2,7 +2,10 @@
 
 1. pgvector cosine search over episodes + facts (HNSW index) → candidates
 2. keyword-trigger boost (exact / token overlap with stored keywords)
-3. local cross-encoder rerank
+3. local cross-encoder rerank, fused with cosine similarity:
+      relevance = 0.5 · cosine + 0.5 · minmax(rerank)   (+ keyword bonus)
+   (the MS-MARCO cross-encoder outputs low absolute scores for statement-style memories,
+    so its scores are min-max normalised within the candidate set and blended with cosine)
 4. final score = 0.60 · relevance + 0.25 · importance + 0.15 · recency
 """
 from __future__ import annotations
@@ -101,15 +104,17 @@ def retrieve(
 
     rerank_scores = reranker.score(query, [c["text"] for c in candidates]) if use_reranker else None
     result.used_reranker = rerank_scores is not None
+    if rerank_scores is not None:
+        lo, hi = min(rerank_scores), max(rerank_scores)
+        rerank_norm = [(s - lo) / (hi - lo) if hi > lo else 0.5 for s in rerank_scores]
 
     for i, c in enumerate(candidates):
         bonus = _keyword_bonus(q_tokens, c.pop("_keywords"), c["text"])
+        cosine = max(0.0, 1 - c["distance"]) if c["distance"] is not None else 0.0
         if rerank_scores is not None:
-            relevance = rerank_scores[i]
-        elif c["distance"] is not None:
-            relevance = max(0.0, 1 - c["distance"])
+            relevance = 0.5 * cosine + 0.5 * rerank_norm[i] if c["distance"] is not None else rerank_norm[i]
         else:
-            relevance = 0.0
+            relevance = cosine
         relevance = min(1.0, relevance + bonus)
         c["rerank"] = round(rerank_scores[i], 4) if rerank_scores is not None else None
         c["keyword_bonus"] = round(bonus, 3)

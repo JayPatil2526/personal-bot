@@ -192,10 +192,13 @@ def classify(state: ChatState, ctx: TurnContext) -> dict:
 
     valid_todos = {t["id"] for g in state["goals_view"] for t in g.get("todos", [])}
     valid_ms = {m["id"] for g in state["goals_view"] for m in g.get("milestones", [])}
+    done_today = {t["id"] for g in state["goals_view"] for t in g.get("todos", []) if t["done_today"]}
     updates = [
         u.model_dump()
         for u in out.progress_updates
-        if (u.todo_id in valid_todos) or (u.milestone_id in valid_ms)
+        if ((u.todo_id in valid_todos) or (u.milestone_id in valid_ms))
+        # an "undo" only makes sense for a todo that is currently ticked
+        and (u.done or u.todo_id in done_today)
     ]
     needs_memory = out.needs_memory or out.intent in {
         "memory_question", "emotional", "goal_question", "progress_report", "new_goal"
@@ -340,7 +343,8 @@ def progress_update(state: ChatState, ctx: TurnContext) -> dict:
         goal_title = next((g["title"] for g in state["goals_view"] if g["id"] == r["goal_id"]), "")
         results.append({**r, "label": label, "goal_title": goal_title})
         sign = "+" if r["delta"] >= 0 else ""
-        chips.append({"type": "progress", "text": f"✅ {label} · {sign}{r['delta']}%"})
+        icon = "✅" if r["done"] else "↩️"
+        chips.append({"type": "progress", "text": f"{icon} {label} · {sign}{r['delta']}%"})
     db.commit()
     today = goal_svc.user_today(user)
     refreshed = [

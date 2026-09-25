@@ -5,13 +5,14 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.agents import llm
 from app.agents.background import BACKGROUND_SPEC
 from app.agents.graph import GRAPH_SPEC
 from app.core.config import settings
 from app.core.security import get_current_user
 from app.db.models import AgentTrace, User
 from app.db.session import get_db
-from app.memory import reranker
+from app.memory import embeddings, reranker
 
 router = APIRouter(prefix="/dev", tags=["developer"])
 
@@ -27,13 +28,14 @@ def config(user: User = Depends(get_current_user)):
         "reply_model": settings.llm_reply_model,
         "fast_model": settings.llm_fast_model,
         "fallback_model": settings.llm_fallback_model,
-        "embedding_model": settings.embedding_model,
+        "embedding_model": embeddings.model_name().replace("models/", ""),
         "embedding_dim": settings.embedding_dim,
         "reranker": settings.reranker_model if reranker.enabled() else "disabled",
         "retrieval": {"candidates": settings.retrieval_candidates, "top_k": settings.retrieval_top_k,
                       "max_distance": settings.max_distance, "weights": {"relevance": 0.6, "importance": 0.25, "recency": 0.15}},
         "mistral_configured": bool(settings.mistral_api_key),
         "gemini_configured": bool(settings.gemini_api_key),
+        "provider_circuits": llm.provider_status(),
     }
 
 

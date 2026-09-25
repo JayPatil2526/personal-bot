@@ -14,9 +14,9 @@ Priority = Literal["low", "medium", "high", "urgent"]
 
 
 class ProgressUpdate(BaseModel):
-    todo_id: int | None = Field(None, description="ID of a todo from the list that the user says they completed")
-    milestone_id: int | None = Field(None, description="ID of a milestone the user says they reached")
-    done: bool = Field(True, description="False only if the user says they did NOT do it after previously claiming it")
+    todo_id: int | None = Field(None, description="ID of a todo the user explicitly says they COMPLETED")
+    milestone_id: int | None = Field(None, description="ID of a milestone the user explicitly says they reached")
+    done: bool = Field(True, description="True = completed. False ONLY to undo a todo already marked done today")
     note: str = Field("", description="Short quote/paraphrase of what the user reported")
 
 
@@ -31,7 +31,9 @@ class ClassifierOutput(BaseModel):
         "", description="If the user wants to start/set a NEW goal or habit, the goal in their words; otherwise empty"
     )
     progress_updates: list[ProgressUpdate] = Field(
-        default_factory=list, description="Todos/milestones the user reports as done in THIS message (use the given IDs)"
+        default_factory=list,
+        description="Todos/milestones the user says they COMPLETED in THIS message (use the given IDs). "
+        "Skipped / missed / forgot / didn't do → NOT a progress update, leave it out. Empty list if unsure.",
     )
     needs_memory: bool = Field(description="True if answering well needs past memories about the user")
     memory_query: str = Field("", description="Short search query to find relevant memories (empty if not needed)")

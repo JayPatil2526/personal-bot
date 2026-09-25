@@ -25,7 +25,9 @@ Safety guide (be accurate, do not over-block):
 - self_harm: any sign of suicidal thoughts or self-injury
 - safe: everything else
 
-For progress_updates use ONLY the todo/milestone IDs listed below. Include an item only if the user clearly says it was done.
+For progress_updates use ONLY the todo/milestone IDs listed below. Include an item only if the user clearly says they DID it.
+If they say they skipped, missed, forgot or failed something, that is NOT progress — leave progress_updates empty for it
+(their mood/struggle is captured elsewhere).
 Set needs_web_search only for things needing fresh real-world info.
 
 USER'S ACTIVE TODOS AND MILESTONES:
