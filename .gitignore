@@ -28,3 +28,6 @@ pgdata/
 .DS_Store
 .vscode/
 .idea/
+
+# Private notes (not pushed)
+plan/
