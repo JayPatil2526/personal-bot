@@ -11,8 +11,6 @@ progress and streaks, and nudges you toward them — each character in their own
 | **Backend** | FastAPI, SQLAlchemy, JWT auth, Server-Sent Events |
 | **Frontend** | Next.js 15, Tailwind CSS v4, Framer Motion, Recharts, React Flow |
 
-See [docs/PLAN.md](docs/PLAN.md) for the full design.
-
 ---
 
 ## Run it (development)
@@ -84,7 +82,6 @@ backend/app/
 frontend/
   app/        landing, login, (app)/dashboard, chat, goals, memory, crew, developer
   components/ chat UI, trace panel, goal wizard, UI primitives
-docs/         project plan, report material
 ```
 
 ## Demo script
