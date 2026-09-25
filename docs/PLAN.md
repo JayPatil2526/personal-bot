@@ -335,3 +335,83 @@ App Store / Play Store (mobile). Usage limits enforced per tier (messages/day, t
 | Observability | Per-node traces (built) → LangSmith / Grafana + Loki |
 | Privacy & security | Field-level encryption of memories, user data export/delete, consent flag for LLM data sharing |
 | Multi-platform | Same API serves web, mobile app, WhatsApp/Telegram bot |
+
+## 17. Academic Deliverables (Silver Oak University formats)
+
+| # | Deliverable | Format given by college | Output |
+|---|---|---|---|
+| 1 | Project presentation | Silver Oak slide template (title slide + 13 sections) | `.pptx` |
+| 2 | Research paper | IEEE conference template (A4, 2-column) | `.docx` (+ PDF) |
+| 3 | Weekly review report | "B.Tech CE Minor Project – Weekly Review" form (Sections A–D) | `.docx` per week |
+| 4 | Repo documentation | – | `README.md`, `docs/ARCHITECTURE.md`, API docs at `/docs` |
+
+### 17.1 Presentation – slide-by-slide content
+| Slide | Content source |
+|---|---|
+| Title | Course name/code, title, Project ID, Enrollment No, Name, Branch, Guide |
+| Index | Fixed list from template |
+| Introduction | §1 problem & idea |
+| Background & Motivation | Stateless chatbots, habit-tracking apps without conversation, low goal completion rates |
+| Relevance & Importance | Who benefits (students, working professionals), new insights (§2 table) |
+| Literature Review | 10-row table: Ref · Algorithm · Dataset · Result · Findings (§17.4) |
+| Research Gap | §17.5 |
+| Objectives | §17.6 |
+| Dataset, Tools & Technology | §4 stack + evaluation datasets (§17.7) |
+| Methodology | Architecture diagram (§5), agent graph (§6), memory pipeline (§7) |
+| Result | Screenshots + evaluation metrics (§17.7) |
+| Conclusion | Summary of what was achieved |
+| Future Work | §3 future scope + §16 business model & scalability |
+| References | IEEE style, numbered [1]…, generated/validated with scribbr.com |
+
+### 17.2 IEEE paper structure
+Title · Authors/affiliation · Abstract (no symbols/math) · Keywords · I. Introduction ·
+II. Related Work · III. System Architecture · IV. Methodology (agent graph, episodic memory,
+retrieval + reranking, goal validation, priority weighting equation) · V. Implementation ·
+VI. Experiments & Results (tables/figures) · VII. Conclusion & Future Work · References.
+
+### 17.3 Weekly review report
+Filled from git history + this plan: planned vs. completed work, modules implemented,
+tools used, results, pending work, papers reviewed count, challenges, completion %.
+
+### 17.4 Literature (candidate core papers – verify citation details with scribbr before final)
+| # | Paper | Relevance to this project |
+|---|---|---|
+| 1 | J. S. Park et al., "Generative Agents: Interactive Simulacra of Human Behavior," UIST 2023 | Memory stream, reflection, retrieval by recency + importance + relevance |
+| 2 | C. Packer et al., "MemGPT: Towards LLMs as Operating Systems," arXiv 2023 | Tiered long-term memory management for LLMs |
+| 3 | W. Zhong et al., "MemoryBank: Enhancing Large Language Models with Long-Term Memory," AAAI 2024 | Long-term memory for companion chatbots, forgetting-curve updates |
+| 4 | J. Xu, A. Szlam, J. Weston, "Beyond Goldfish Memory: Long-Term Open-Domain Conversation," ACL 2022 | Multi-session chat, memory summarization |
+| 5 | A. Maharana et al., "Evaluating Very Long-Term Conversational Memory of LLM Agents," ACL 2024 | Benchmark (LoCoMo) for long-term conversational memory |
+| 6 | S. Yao et al., "ReAct: Synergizing Reasoning and Acting in Language Models," ICLR 2023 | Reason + tool-use loop (agentic flow) |
+| 7 | T. Schick et al., "Toolformer: Language Models Can Teach Themselves to Use Tools," NeurIPS 2023 | LLM tool use |
+| 8 | P. Lewis et al., "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks," NeurIPS 2020 | RAG foundation |
+| 9 | R. Nogueira, K. Cho, "Passage Re-ranking with BERT," arXiv 2019 | Cross-encoder reranking |
+| 10 | Y. A. Malkov, D. A. Yashunin, "Efficient and Robust Approximate Nearest Neighbor Search Using HNSW Graphs," IEEE TPAMI 2020 | Vector index used in pgvector |
+| 11 | Y. Shao et al., "Character-LLM: A Trainable Agent for Role-Playing," EMNLP 2023 | Persona-consistent characters |
+| 12 | K. K. Fitzpatrick, A. Darcy, M. Vierhile, "Delivering CBT … Using a Fully Automated Conversational Agent (Woebot): A Randomized Controlled Trial," JMIR Mental Health 2017 | Conversational agents improve wellbeing outcomes |
+| 13 | B. J. Fogg, "A Behavior Model for Persuasive Design," Persuasive 2009 | Motivation + ability + prompt → nudge design |
+| 14 | H. Inan et al., "Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations," arXiv 2023 | Safety classification of user requests |
+| 15 | E. Tulving, "Episodic and Semantic Memory," in *Organization of Memory*, 1972 | Theoretical basis for episodic vs semantic memory |
+
+### 17.5 Research gap (draft)
+1. Memory-augmented chat agents (MemGPT, MemoryBank) focus on recall, not on **goal pursuit and behaviour change**.
+2. Habit / goal apps track progress but have **no conversational, context-aware coaching**.
+3. Existing companions use a **single persona**; no shared memory across multiple characters with different motivation styles.
+4. Few systems **validate goals** for safety and feasibility before planning.
+5. Little work combines **episodic memory + tool-using agent + goal tracking** in one deployable system with transparent traces.
+
+### 17.6 Objectives (draft)
+1. Build a multi-character conversational agent with episodic + semantic long-term memory.
+2. Design an agentic LangGraph pipeline with intent routing, safety guard, goal validation, planning and tool use.
+3. Implement goal → plan → todo tracking with progress, streaks and priority-weighted nudging.
+4. Implement hybrid retrieval (pgvector + keyword + cross-encoder rerank) and measure its effect.
+5. Deliver a secure web application with a transparent developer trace view.
+
+### 17.7 Evaluation (for Result slide & paper)
+| Experiment | Data | Metric |
+|---|---|---|
+| Goal validator accuracy | 40 hand-labelled goals (safe / unrealistic / dual-use / harmful) | Accuracy, per-class precision/recall, confusion matrix |
+| Memory recall | Scripted multi-session conversations with 30 planted facts, then questions | Recall@5 and answer accuracy: cosine only vs cosine + reranker |
+| Intent classification | 50 labelled user messages | Accuracy |
+| Latency & cost | Real traces from `agent_traces` | Avg ms per node, tokens per turn, fallback rate |
+| Qualitative | Demo conversations | Persona consistency, cross-character references |
+Scripts live in `backend/eval/`, outputs saved as CSV + charts for the report.
