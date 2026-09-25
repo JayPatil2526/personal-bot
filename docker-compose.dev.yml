@@ -5,13 +5,14 @@ services:
       - "5433:5432"   # EXPOSED IN DEV (host 5433 avoids clashing with a local Postgres)
 
   backend:
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "app"]
     volumes:
       - ./backend:/app
     environment:
       APP_ENV: development
 
   frontend:
+    image: minor-bot-frontend-dev   # separate tag so the production image is not replaced
     build:
       context: ./frontend
       target: deps
@@ -19,5 +20,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - /app/.next                  # keep the container's build cache out of the host folder
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
