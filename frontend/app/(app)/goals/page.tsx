@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Target } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import GoalWizard from "@/components/GoalWizard";
@@ -24,12 +24,9 @@ function GoalsInner() {
   return (
     <div className="mx-auto max-w-6xl p-6 md:p-10">
       <PageHeader
-        title={
-          <>
-            Your <span className="italic text-gradient">goals</span>
-          </>
-        }
-        subtitle="Every goal is validated for safety & feasibility, planned by AI, and shared with your crew."
+        eyebrow="Goals"
+        title="What you're working toward"
+        subtitle="Every goal is checked for safety and feasibility, broken into milestones and daily habits, and shared with your crew."
         action={
           <Button onClick={() => setWizard(true)}>
             <Plus className="h-4 w-4" /> New goal
@@ -62,9 +59,9 @@ function GoalsInner() {
       ) : (
         <Card>
           <Empty
-            icon="🎯"
+            icon={<Target className="h-5 w-5" />}
             title={filter === "completed" ? "No completed goals yet" : "No goals here yet"}
-            text="Create one here or just tell a crew member in chat — e.g. “I want to drink more water”."
+            text="Create one here, or just tell a crew member in chat — for example “I want to drink more water”."
             action={
               <Button onClick={() => setWizard(true)}>
                 <Plus className="h-4 w-4" /> Create a goal

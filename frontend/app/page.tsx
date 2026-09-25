@@ -1,177 +1,193 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Brain, Globe, ShieldCheck, Sparkles, Target, Users } from "lucide-react";
+import { ArrowRight, BarChart3, Brain, Handshake, Scale } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/AppShell";
+import { Avatar } from "@/components/ui";
 import { getToken } from "@/lib/api";
 
-const CREW = [
-  { name: "Arjun", emoji: "🏋️", tag: "No-excuses fitness coach", line: "2 litres. Today. No excuses. 💪", from: "from-orange-500/30", ring: "ring-orange-400/30" },
-  { name: "Meera", emoji: "🌿", tag: "Calm, mindful friend", line: "Arjun was intense today 😅 small sips, small steps ✨", from: "from-emerald-500/30", ring: "ring-emerald-400/30" },
-  { name: "Kabir", emoji: "🧠", tag: "Witty money & career mentor", line: "₹1 lakh in a week? Bro. Let's talk SIPs. 📈", from: "from-sky-500/30", ring: "ring-sky-400/30" },
+const THREAD = [
+  { who: "you", text: "Feeling lazy today… should I skip the gym and rest?" },
+  { who: "Meera", color: "sage", text: "Listening to your body matters. A gentle stretch and an early night is a win too." },
+  { who: "Arjun", color: "saffron", text: "Meera's right about rest — but lazy isn't tired. 20 minutes, light. Chal." },
+  { who: "Kabir", color: "indigo", text: "Also, you promised a walk yesterday. Did that happen, boss? 👀" },
 ];
 
-const FEATURES = [
-  { icon: Brain, title: "Episodic memory", text: "Remembers what happened, when and how it felt — across every session and every character." },
-  { icon: Target, title: "Goals → plans → habits", text: "Turns a wish into milestones and daily todos, tracks progress, streaks and priority." },
-  { icon: ShieldCheck, title: "Goal validation", text: "Checks every goal for safety and feasibility. Reframes the unrealistic, refuses the harmful." },
-  { icon: Globe, title: "Tool-using agent", text: "Searches the web for live info, updates your progress and plans — not just chat." },
-  { icon: Users, title: "A crew, not a bot", text: "Distinct personalities with their own lives that share one brain about you." },
-  { icon: Sparkles, title: "Transparent AI", text: "Watch the agent think: every step, tool, memory and token in the developer view." },
+const DIFFERENT = [
+  {
+    icon: Handshake,
+    title: "It follows up",
+    text: "Say “I’ll go to the gym tomorrow” and it becomes a promise with a date. Tomorrow, any crew member asks if you did it.",
+  },
+  {
+    icon: Brain,
+    title: "It remembers — visibly",
+    text: "Episodic memory of what happened and how it felt, shared across characters. You can read, search and delete it.",
+  },
+  {
+    icon: Scale,
+    title: "It checks your goals",
+    text: "Every goal is validated for safety and feasibility. Unrealistic ones are reframed, harmful ones refused.",
+  },
+  {
+    icon: BarChart3,
+    title: "It reports from your data",
+    text: "A weekly report computed from your own habits, moods and promises — not generated guesses.",
+  },
 ];
 
-const PIPELINE = ["Understand", "Safety", "Validate", "Search", "Plan", "Remember", "Reply"];
+const STEPS = ["Understand", "Safety", "Validate", "Search", "Plan", "Track", "Remember", "Reply"];
 
 export default function Landing() {
   const [authed, setAuthed] = useState(false);
-  const [step, setStep] = useState(0);
   useEffect(() => setAuthed(!!getToken()), []);
-  useEffect(() => {
-    const t = setInterval(() => setStep((s) => (s + 1) % PIPELINE.length), 900);
-    return () => clearInterval(t);
-  }, []);
 
   return (
-    <div className="mx-auto max-w-6xl px-5">
-      <header className="flex items-center justify-between py-6">
+    <div className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 -top-40 h-[520px] opacity-70">
+        <div className="sunrise mx-auto h-full max-w-5xl" />
+      </div>
+
+      <header className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <Logo />
-        <Link
-          href={authed ? "/dashboard" : "/login"}
-          className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white transition hover:bg-white/[0.08]"
-        >
-          {authed ? "Open app" : "Sign in"}
-        </Link>
+        <div className="flex gap-2">
+          <Link href={authed ? "/dashboard" : "/login"} className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-white hover:bg-[#2c2f47]">
+            {authed ? "Open app" : "Log in"}
+          </Link>
+        </div>
       </header>
 
-      {/* Hero */}
-      <section className="grid items-center gap-12 pb-20 pt-10 md:grid-cols-[1.1fr_1fr] md:pt-20">
-        <div>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-soft"
+      <section className="relative mx-auto max-w-4xl px-6 pb-16 pt-20 text-center md:pt-28">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto mb-7 inline-block border-y border-indigo-line px-6 py-2 text-[14px] text-indigo">
+          Conversational lifestyle & goal tracking · episodic memory
+        </motion.div>
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05, duration: 0.5 }}
+          className="headline text-[44px] md:text-[68px]"
+        >
+          A crew that remembers,
+          <br />
+          so you follow through.
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, duration: 0.5 }}
+          className="mx-auto mt-6 max-w-xl text-[17px] leading-relaxed text-ink-2"
+        >
+          Three companions with their own lives and styles, one shared memory of you — turning goals into daily plans,
+          promises into follow-ups, and weeks into honest reports.
+        </motion.p>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-9 flex justify-center gap-3">
+          <Link
+            href={authed ? "/dashboard" : "/login?mode=register"}
+            className="group inline-flex h-12 items-center gap-2 rounded-full bg-ink px-7 text-[15px] font-medium text-white hover:bg-[#2c2f47]"
           >
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-            Agentic AI · Episodic memory · Goal tracking
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="font-[family-name:var(--font-display)] text-5xl leading-[1.02] tracking-tight text-white md:text-7xl"
-          >
-            Not a chatbot.
-            <br />
-            <span className="italic text-gradient">Your crew</span> for better days.
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.12 }}
-            className="mt-6 max-w-lg text-base leading-relaxed text-muted md:text-lg"
-          >
-            AI companions that remember your life, turn wishes into realistic plans, track your habits and nudge you — each in
-            their own voice.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-9 flex flex-wrap gap-3"
-          >
-            <Link
-              href={authed ? "/dashboard" : "/login?mode=register"}
-              className="group inline-flex h-12 items-center gap-2 rounded-xl btn-gradient px-6 font-medium text-white shadow-[0_10px_40px_-10px_rgba(217,70,239,0.7)]"
-            >
-              Meet your crew <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-            </Link>
-            <a href="#how" className="inline-flex h-12 items-center rounded-xl border border-white/10 px-6 text-sm text-soft hover:bg-white/[0.04]">
-              How it works
-            </a>
-          </motion.div>
-        </div>
+            Get started <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+          </Link>
+          <a href="#different" className="inline-flex h-12 items-center rounded-full border border-line-strong bg-white px-7 text-[15px] text-ink hover:bg-subtle">
+            What&apos;s different
+          </a>
+        </motion.div>
+      </section>
 
-        {/* Floating crew cards */}
-        <div className="relative h-[420px]">
-          {CREW.map((c, i) => (
-            <motion.div
-              key={c.name}
-              initial={{ opacity: 0, y: 30, rotate: 0 }}
-              animate={{ opacity: 1, y: [0, -8, 0], rotate: [-3, 2, 3][i] }}
-              transition={{
-                opacity: { delay: 0.25 + i * 0.12 },
-                y: { duration: 5 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.6 },
-                rotate: { delay: 0.25 + i * 0.12 },
-              }}
-              className="glass absolute w-[300px] rounded-3xl p-5 shadow-2xl"
-              style={{ top: i * 125, left: [10, 120, 30][i] }}
-            >
-              <div className={`absolute inset-0 -z-10 rounded-3xl bg-gradient-to-br ${c.from} to-transparent opacity-60`} />
-              <div className="flex items-center gap-3">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-white/5 text-2xl ring-1 ${c.ring}`}>{c.emoji}</div>
-                <div>
-                  <div className="font-semibold text-white">{c.name}</div>
-                  <div className="text-xs text-muted">{c.tag}</div>
-                </div>
+      {/* Product preview */}
+      <section className="relative mx-auto max-w-5xl px-6 pb-24">
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className="card overflow-hidden p-2 shadow-xl shadow-ink/5">
+          <div className="grid overflow-hidden rounded-2xl border border-line md:grid-cols-[1fr_1.3fr]">
+            <div className="dots flex flex-col justify-center gap-3 p-8">
+              <div className="eyebrow">Crew huddle</div>
+              <div className="text-xl font-medium tracking-tight text-ink">One question. Three honest opinions.</div>
+              <p className="text-sm leading-relaxed text-ink-2">
+                They read each other&apos;s replies, agree, push back — and bring up the promise you made yesterday.
+              </p>
+              <div className="mt-2 flex gap-2">
+                {[
+                  ["Arjun", "saffron", "Coach"],
+                  ["Meera", "sage", "Friend"],
+                  ["Kabir", "indigo", "Mentor"],
+                ].map(([n, c, r]) => (
+                  <div key={n} className="flex items-center gap-2 rounded-full border border-line bg-white py-1 pl-1 pr-3 text-xs text-ink-2">
+                    <Avatar name={n} color={c} size="xs" /> {r}
+                  </div>
+                ))}
               </div>
-              <div className="mt-3 rounded-2xl rounded-tl-md bg-white/[0.06] px-3.5 py-2.5 text-sm text-soft">{c.line}</div>
+            </div>
+            <div className="space-y-3 bg-white p-6">
+              {THREAD.map((m, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4 + i * 0.25 }}
+                  className={m.who === "you" ? "flex justify-end" : "flex items-end gap-2"}
+                >
+                  {m.who !== "you" && <Avatar name={m.who} color={m.color} size="sm" />}
+                  <div
+                    className={
+                      m.who === "you"
+                        ? "max-w-[78%] rounded-2xl rounded-br-md border border-saffron-line bg-saffron-soft px-4 py-2.5 text-[14px] text-ink"
+                        : "max-w-[78%] rounded-2xl rounded-bl-md border border-line bg-subtle px-4 py-2.5 text-[14px] text-ink"
+                    }
+                  >
+                    {m.who !== "you" && <div className="mb-0.5 text-[11px] font-medium text-muted">{m.who}</div>}
+                    {m.text}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* What's different */}
+      <section id="different" className="mx-auto max-w-6xl px-6 pb-24">
+        <div className="eyebrow mb-3 text-center">Not another chatbot</div>
+        <h2 className="headline mx-auto max-w-2xl text-center text-[34px] md:text-[42px]">What a chat window can&apos;t do on its own</h2>
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {DIFFERENT.map((f, i) => (
+            <motion.div key={f.title} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }} className="card p-6">
+              <f.icon className="h-5 w-5 text-ink" strokeWidth={1.8} />
+              <div className="mt-5 font-medium text-ink">{f.title}</div>
+              <p className="mt-2 text-[14px] leading-relaxed text-ink-2">{f.text}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Features */}
-      <section className="grid gap-4 pb-24 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map((f, i) => (
-          <motion.div
-            key={f.title}
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ delay: i * 0.06 }}
-            className="glass group rounded-2xl p-6 transition hover:border-white/15"
-          >
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/25 to-fuchsia-500/10 ring-1 ring-white/10">
-              <f.icon className="h-5 w-5 text-violet-200" />
-            </div>
-            <div className="font-medium text-white">{f.title}</div>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted">{f.text}</p>
-          </motion.div>
-        ))}
-      </section>
-
       {/* How it works */}
-      <section id="how" className="pb-28">
-        <h2 className="text-center font-[family-name:var(--font-display)] text-4xl text-white md:text-5xl">
-          Every message runs an <span className="italic text-gradient">agent graph</span>
-        </h2>
-        <p className="mx-auto mt-3 max-w-xl text-center text-sm text-muted">
-          LangGraph routes each message through only the steps it needs — then a background graph writes new memories.
-        </p>
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
-          {PIPELINE.map((p, i) => (
-            <div key={p} className="flex items-center gap-2">
-              <motion.div
-                animate={{
-                  scale: i === step ? 1.08 : 1,
-                  borderColor: i === step ? "rgba(217,70,239,0.6)" : "rgba(255,255,255,0.08)",
-                  backgroundColor: i <= step ? "rgba(139,92,246,0.14)" : "rgba(255,255,255,0.02)",
-                }}
-                className="rounded-xl border px-4 py-2.5 text-sm text-white"
-              >
-                {p}
-              </motion.div>
-              {i < PIPELINE.length - 1 && <div className={`h-px w-5 ${i < step ? "bg-fuchsia-400/60" : "bg-white/10"}`} />}
-            </div>
-          ))}
+      <section className="border-y border-line bg-white py-20">
+        <div className="mx-auto max-w-6xl px-6 text-center">
+          <div className="eyebrow mb-3">Under the hood</div>
+          <h2 className="headline text-[30px] md:text-[38px]">Every message runs an agent graph</h2>
+          <p className="mx-auto mt-3 max-w-xl text-[15px] text-ink-2">
+            LangGraph routes each message through only the steps it needs; a background graph then writes and compresses memory.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+            {STEPS.map((s, i) => (
+              <div key={s} className="flex items-center gap-2">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  className="rounded-full border border-line bg-bg px-4 py-2 font-mono text-[12px] text-ink-2"
+                >
+                  {s.toLowerCase()}
+                </motion.div>
+                {i < STEPS.length - 1 && <div className="h-px w-4 bg-line-strong" />}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.06] py-8 text-center text-xs text-muted">
-        Conversational Lifestyle & Goal-Tracking AI with Episodic Memory · Minor Project
-      </footer>
+      <footer className="py-10 text-center text-[13px] text-muted">Conversational Lifestyle & Goal-Tracking AI with Episodic Memory · Minor Project</footer>
     </div>
   );
 }

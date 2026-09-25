@@ -1,68 +1,81 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-bg: #07070b;
-  --color-surface: #0e0e15;
-  --color-elevated: #14141d;
-  --color-line: rgb(255 255 255 / 0.08);
-  --color-muted: #8b8b9e;
-  --color-soft: #c4c4d4;
-  --color-accent: #8b5cf6;
-  --color-accent-2: #ec4899;
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-display);
-  --font-mono: var(--font-mono);
+@theme {
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-subtle: #f4f4f6;
+  --color-line: #e8e8ee;
+  --color-line-strong: #d6d7df;
+  --color-ink: #1e2033;
+  --color-ink-2: #4a4d5e;
+  --color-muted: #8b8e9c;
+
+  --color-saffron: #e8590c;
+  --color-saffron-soft: #fff3ea;
+  --color-saffron-line: #fbd7bf;
+  --color-sage: #4d7c2a;
+  --color-sage-soft: #eef5e6;
+  --color-sage-line: #cfe3bb;
+  --color-indigo: #4f5bd5;
+  --color-indigo-soft: #eef0fd;
+  --color-indigo-line: #cdd2f8;
+  --color-rose: #cf3d5a;
+  --color-rose-soft: #fdeef1;
+  --color-rose-line: #f6c9d3;
+  --color-amber: #b7791f;
+  --color-amber-soft: #fdf6e7;
+  --color-amber-line: #f1dfb4;
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
 }
 
 html,
 body {
   background: var(--color-bg);
-  color: #ececf3;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
 }
 
 ::selection {
-  background: rgb(139 92 246 / 0.35);
+  background: #ffe2cc;
 }
 
-/* Soft ambient glow behind the whole app */
-.ambient {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(40rem 30rem at 12% -10%, rgb(139 92 246 / 0.16), transparent 60%),
-    radial-gradient(35rem 25rem at 100% 0%, rgb(236 72 153 / 0.10), transparent 60%),
-    radial-gradient(40rem 30rem at 50% 120%, rgb(56 189 248 / 0.08), transparent 60%);
+.headline {
+  font-weight: 450;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+  color: var(--color-ink);
 }
 
-.grain::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
 }
 
-.glass {
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.02));
+.card {
+  background: var(--color-surface);
   border: 1px solid var(--color-line);
-  backdrop-filter: blur(14px);
+  border-radius: 20px;
 }
 
-.text-gradient {
-  background: linear-gradient(90deg, #c4b5fd, #f0abfc 45%, #fdba74);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.dots {
+  background-color: var(--color-subtle);
+  background-image: radial-gradient(rgb(30 32 51 / 0.09) 1px, transparent 1px);
+  background-size: 14px 14px;
 }
 
-.btn-gradient {
-  background: linear-gradient(135deg, #8b5cf6, #d946ef 55%, #f97316);
+/* Soft saffron → indigo wash, used only at the very top of the landing page */
+.sunrise {
+  background:
+    radial-gradient(55% 70% at 50% 0%, rgb(249 115 22 / 0.55), transparent 70%),
+    radial-gradient(80% 90% at 50% 10%, rgb(129 140 248 / 0.35), transparent 75%);
+  filter: blur(40px);
 }
 
 .scroll-thin::-webkit-scrollbar {
@@ -70,22 +83,20 @@ body {
   height: 6px;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
-  background: rgb(255 255 255 / 0.1);
+  background: var(--color-line-strong);
   border-radius: 999px;
 }
 .scroll-thin::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Typing caret for streaming replies */
 .caret::after {
   content: "";
   display: inline-block;
-  width: 7px;
-  height: 1em;
+  width: 2px;
+  height: 1.05em;
   margin-left: 2px;
-  vertical-align: -2px;
-  border-radius: 2px;
+  vertical-align: -3px;
   background: currentColor;
   animation: blink 1s steps(2) infinite;
 }
@@ -96,7 +107,7 @@ body {
 }
 
 .shimmer {
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.03), rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.03));
+  background: linear-gradient(90deg, #f1f1f4, #e8e8ee, #f1f1f4);
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
@@ -107,10 +118,13 @@ body {
 }
 
 .prose-chat p {
-  margin: 0.35rem 0;
+  margin: 0.4rem 0;
 }
 .prose-chat p:first-child {
   margin-top: 0;
+}
+.prose-chat p:last-child {
+  margin-bottom: 0;
 }
 .prose-chat ul,
 .prose-chat ol {
@@ -124,15 +138,13 @@ body {
   list-style: decimal;
 }
 .prose-chat strong {
-  color: #fff;
   font-weight: 600;
 }
 .prose-chat a {
-  color: #c4b5fd;
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-/* React Flow dark tweaks */
 .react-flow__attribution {
   display: none;
 }

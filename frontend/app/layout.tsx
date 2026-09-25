@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Figtree, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const display = Instrument_Serif({ variable: "--font-display", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
-const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
+const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
+const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], weight: ["400", "500"] });
 
 export const metadata: Metadata = {
-  title: "LifeCrew — your AI crew for goals & good habits",
+  title: "LifeCrew — goals, habits and a crew that remembers",
   description: "Conversational Lifestyle & Goal-Tracking AI with Episodic Memory",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} ${display.variable} ${mono.variable} grain min-h-screen`}>
-        <div className="ambient" />
-        <div className="relative z-10">{children}</div>
-        <Toaster theme="dark" position="top-center" toastOptions={{ className: "!bg-[#14141d] !border-white/10" }} />
+    <html lang="en" className={`${figtree.variable} ${mono.variable}`}>
+      <body className="min-h-screen">
+        {children}
+        <Toaster
+          position="top-center"
+          toastOptions={{ className: "!rounded-2xl !border !border-line !bg-white !text-ink !shadow-lg !font-sans" }}
+        />
       </body>
     </html>
   );

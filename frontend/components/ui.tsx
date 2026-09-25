@@ -13,21 +13,21 @@ export function Button({
   children,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "ghost" | "outline" | "danger";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
 }) {
   const variants = {
-    primary: "btn-gradient text-white shadow-[0_8px_30px_-8px_rgba(217,70,239,0.55)] hover:brightness-110",
-    ghost: "text-soft hover:bg-white/5 hover:text-white",
-    outline: "border border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.07]",
-    danger: "border border-rose-400/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20",
+    primary: "bg-ink text-white hover:bg-[#2c2f47]",
+    secondary: "border border-line-strong bg-white text-ink hover:bg-subtle",
+    ghost: "text-ink-2 hover:bg-subtle hover:text-ink",
+    danger: "border border-rose-line bg-rose-soft text-rose hover:bg-[#fbe2e8]",
   };
-  const sizes = { sm: "h-8 px-3 text-xs", md: "h-10 px-4 text-sm", lg: "h-12 px-6 text-base" };
+  const sizes = { sm: "h-8 px-3.5 text-[13px]", md: "h-10 px-5 text-sm", lg: "h-12 px-7 text-[15px]" };
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40",
         variants[variant],
         sizes[size],
         className,
@@ -43,7 +43,7 @@ export function Button({
 
 export function Card({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("glass rounded-2xl", className)} {...props}>
+    <div className={cn("card", className)} {...props}>
       {children}
     </div>
   );
@@ -57,37 +57,22 @@ export function Badge({ className, children }: { className?: string; children: R
   );
 }
 
-export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, ...props }, ref) => (
-    <input
-      ref={ref}
-      className={cn(
-        "h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 text-sm text-white placeholder:text-muted outline-none transition focus:border-violet-400/50 focus:bg-white/[0.05] focus:ring-4 focus:ring-violet-500/10",
-        className,
-      )}
-      {...props}
-    />
-  ),
-);
+const fieldBase =
+  "w-full rounded-xl border border-line-strong bg-white text-sm text-ink placeholder:text-muted outline-none transition focus:border-ink/40 focus:ring-4 focus:ring-ink/5";
+
+export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, ...props }, ref) => (
+  <input ref={ref} className={cn(fieldBase, "h-11 px-3.5", className)} {...props} />
+));
 Input.displayName = "Input";
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
-  ({ className, ...props }, ref) => (
-    <textarea
-      ref={ref}
-      className={cn(
-        "w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 text-sm text-white placeholder:text-muted outline-none transition focus:border-violet-400/50 focus:ring-4 focus:ring-violet-500/10",
-        className,
-      )}
-      {...props}
-    />
-  ),
+  ({ className, ...props }, ref) => <textarea ref={ref} className={cn(fieldBase, "px-3.5 py-3", className)} {...props} />,
 );
 Textarea.displayName = "Textarea";
 
 export function Label({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
-    <label className="mb-1.5 flex items-baseline justify-between text-xs font-medium text-soft">
+    <label className="mb-1.5 flex items-baseline justify-between text-[13px] font-medium text-ink-2">
       {children}
       {hint && <span className="font-normal text-muted">{hint}</span>}
     </label>
@@ -103,20 +88,18 @@ export function Segmented<T extends string>({
   options: { value: T; label: React.ReactNode }[];
   onChange: (v: T) => void;
 }) {
+  const id = React.useId();
   return (
-    <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
+    <div className="inline-flex rounded-full border border-line bg-subtle p-1">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={cn(
-            "relative rounded-lg px-3 py-1.5 text-xs font-medium transition",
-            value === o.value ? "text-white" : "text-muted hover:text-soft",
-          )}
+          className={cn("relative rounded-full px-3.5 py-1.5 text-[13px] transition-colors", value === o.value ? "text-ink" : "text-muted hover:text-ink-2")}
         >
           {value === o.value && (
-            <motion.span layoutId={`seg-${options.map((x) => x.value).join()}`} className="absolute inset-0 rounded-lg bg-white/10" />
+            <motion.span layoutId={`seg-${id}`} className="absolute inset-0 rounded-full border border-line bg-white shadow-sm" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
           )}
           <span className="relative">{o.label}</span>
         </button>
@@ -125,17 +108,7 @@ export function Segmented<T extends string>({
   );
 }
 
-export function Modal({
-  open,
-  onClose,
-  children,
-  className,
-}: {
-  open: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  className?: string;
-}) {
+export function Modal({ open, onClose, children, className }: { open: boolean; onClose: () => void; children: React.ReactNode; className?: string }) {
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -145,7 +118,7 @@ export function Modal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/25 p-4 backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -153,16 +126,13 @@ export function Modal({
         >
           <motion.div
             onMouseDown={(e) => e.stopPropagation()}
-            initial={{ opacity: 0, y: 24, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            className={cn(
-              "relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-[#0e0e15]/95 p-6 shadow-2xl scroll-thin",
-              className,
-            )}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className={cn("scroll-thin relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-line bg-white p-7 shadow-2xl shadow-ink/10", className)}
           >
-            <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1.5 text-muted hover:bg-white/5 hover:text-white">
+            <button onClick={onClose} className="absolute right-4 top-4 rounded-full p-1.5 text-muted hover:bg-subtle hover:text-ink">
               <X className="h-4 w-4" />
             </button>
             {children}
@@ -176,8 +146,8 @@ export function Modal({
 export function ProgressRing({
   value,
   size = 64,
-  stroke = 6,
-  color = "url(#ringGrad)",
+  stroke = 5,
+  color = "#1e2033",
   children,
 }: {
   value: number;
@@ -189,30 +159,22 @@ export function ProgressRing({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const v = Math.max(0, Math.min(100, value));
-  const id = React.useId();
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <defs>
-          <linearGradient id={`g${id}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="60%" stopColor="#d946ef" />
-            <stop offset="100%" stopColor="#f97316" />
-          </linearGradient>
-        </defs>
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(255,255,255,0.07)" strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="#ececf1" strokeWidth={stroke} fill="none" />
         <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={color === "url(#ringGrad)" ? `url(#g${id})` : color}
+          stroke={color}
           strokeWidth={stroke}
           strokeLinecap="round"
           fill="none"
           strokeDasharray={c}
           initial={{ strokeDashoffset: c }}
           animate={{ strokeDashoffset: c - (v / 100) * c }}
-          transition={{ type: "spring", stiffness: 60, damping: 18 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">{children}</div>
@@ -220,75 +182,85 @@ export function ProgressRing({
   );
 }
 
-export function ProgressBar({ value, className }: { value: number; className?: string }) {
+export function ProgressBar({ value, className, color = "#1e2033" }: { value: number; className?: string; color?: string }) {
   return (
-    <div className={cn("h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]", className)}>
+    <div className={cn("h-1.5 w-full overflow-hidden rounded-full bg-[#ececf1]", className)}>
       <motion.div
-        className="h-full rounded-full btn-gradient"
+        className="h-full rounded-full"
+        style={{ background: color }}
         initial={{ width: 0 }}
         animate={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-        transition={{ type: "spring", stiffness: 70, damping: 18 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       />
     </div>
   );
 }
 
-export function Avatar({
-  emoji,
-  color,
-  size = "md",
-  className,
-}: {
-  emoji: string;
-  color?: string;
-  size?: "sm" | "md" | "lg" | "xl";
-  className?: string;
-}) {
+/** Monogram avatar: first letter on the character's soft tint. */
+export function Avatar({ name, color, size = "md", className }: { name: string; color?: string; size?: "xs" | "sm" | "md" | "lg" | "xl"; className?: string }) {
   const c = colorOf(color);
-  const sizes = { sm: "h-8 w-8 text-base", md: "h-10 w-10 text-lg", lg: "h-14 w-14 text-2xl", xl: "h-20 w-20 text-4xl" };
+  const sizes = { xs: "h-6 w-6 text-[11px]", sm: "h-8 w-8 text-[13px]", md: "h-10 w-10 text-[15px]", lg: "h-12 w-12 text-lg", xl: "h-16 w-16 text-2xl" };
   return (
-    <div
-      className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-2xl ring-1",
-        c.bg,
-        c.ring,
-        sizes[size],
-        className,
-      )}
-    >
-      <span>{emoji}</span>
+    <div className={cn("flex shrink-0 items-center justify-center rounded-full border font-semibold", c.soft, c.line, c.text, sizes[size], className)}>
+      {name?.[0]?.toUpperCase() || "?"}
+    </div>
+  );
+}
+
+export function CrewStack({ crew, size = "sm" }: { crew: { name: string; color: string }[]; size?: "xs" | "sm" | "md" }) {
+  return (
+    <div className="flex -space-x-2">
+      {crew.map((c) => (
+        <Avatar key={c.name} name={c.name} color={c.color} size={size} className="ring-2 ring-white" />
+      ))}
     </div>
   );
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("shimmer rounded-xl", className)} />;
+  return <div className={cn("shimmer rounded-2xl", className)} />;
 }
 
-export function Empty({ icon, title, text, action }: { icon: string; title: string; text?: string; action?: React.ReactNode }) {
+export function Empty({ icon, title, text, action }: { icon?: React.ReactNode; title: string; text?: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-      <div className="mb-1 text-4xl">{icon}</div>
-      <div className="font-medium text-white">{title}</div>
-      {text && <p className="max-w-sm text-sm text-muted">{text}</p>}
-      {action && <div className="mt-3">{action}</div>}
+    <div className="flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
+      {icon && <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-subtle text-ink-2">{icon}</div>}
+      <div className="font-medium text-ink">{title}</div>
+      {text && <p className="max-w-sm text-sm leading-relaxed text-muted">{text}</p>}
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }
 
-export function PageHeader({ title, subtitle, action }: { title: React.ReactNode; subtitle?: string; action?: React.ReactNode }) {
+export function PageHeader({ eyebrow, title, subtitle, action }: { eyebrow?: string; title: React.ReactNode; subtitle?: string; action?: React.ReactNode }) {
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-white md:text-5xl">{title}</h1>
-        {subtitle && <p className="mt-2 text-sm text-muted">{subtitle}</p>}
+        {eyebrow && <div className="eyebrow mb-3">{eyebrow}</div>}
+        <h1 className="headline text-[34px] md:text-[44px]">{title}</h1>
+        {subtitle && <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-2">{subtitle}</p>}
       </div>
       {action}
     </div>
   );
 }
 
+export function Stat({ label, value, sub, className }: { label: string; value: React.ReactNode; sub?: React.ReactNode; className?: string }) {
+  return (
+    <Card className={cn("p-5", className)}>
+      <div className="text-[13px] text-muted">{label}</div>
+      <div className="mt-1.5 text-[30px] font-medium leading-none tracking-tight text-ink tabular-nums">{value}</div>
+      {sub && <div className="mt-2 text-[12px] text-muted">{sub}</div>}
+    </Card>
+  );
+}
+
 export const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  show: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.05, type: "spring" as const, stiffness: 260, damping: 26 } }),
+  hidden: { opacity: 0, y: 10 },
+  show: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] as const } }),
+};
+
+export const chartTooltip = {
+  contentStyle: { background: "#fff", border: "1px solid #e8e8ee", borderRadius: 12, fontSize: 12, boxShadow: "0 8px 24px rgba(30,32,51,0.08)" },
+  cursor: { fill: "rgba(30,32,51,0.04)" },
 };

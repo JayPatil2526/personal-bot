@@ -1,38 +1,70 @@
 import { clsx, type ClassValue } from "clsx";
+import {
+  Activity,
+  BookOpen,
+  Brain,
+  Briefcase,
+  CalendarCheck,
+  Database,
+  Dumbbell,
+  FileSearch,
+  Globe,
+  Handshake,
+  HeartPulse,
+  Layers,
+  ListChecks,
+  type LucideIcon,
+  Map,
+  MessageSquareText,
+  PenLine,
+  Route,
+  Save,
+  ScanSearch,
+  Scale,
+  ShieldCheck,
+  Sparkles,
+  Sprout,
+  Sun,
+  TrendingUp,
+  Users,
+  Wind,
+  Zap,
+} from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Full class strings per character colour (Tailwind needs literal class names). */
-export const COLORS: Record<string, { ring: string; bg: string; text: string; soft: string; grad: string; hex: string }> = {
-  orange: { ring: "ring-orange-400/40", bg: "bg-orange-500/15", text: "text-orange-300", soft: "bg-orange-400/10 border-orange-400/20", grad: "from-orange-500 to-amber-400", hex: "#fb923c" },
-  emerald: { ring: "ring-emerald-400/40", bg: "bg-emerald-500/15", text: "text-emerald-300", soft: "bg-emerald-400/10 border-emerald-400/20", grad: "from-emerald-500 to-teal-400", hex: "#34d399" },
-  sky: { ring: "ring-sky-400/40", bg: "bg-sky-500/15", text: "text-sky-300", soft: "bg-sky-400/10 border-sky-400/20", grad: "from-sky-500 to-indigo-400", hex: "#38bdf8" },
-  violet: { ring: "ring-violet-400/40", bg: "bg-violet-500/15", text: "text-violet-300", soft: "bg-violet-400/10 border-violet-400/20", grad: "from-violet-500 to-fuchsia-400", hex: "#a78bfa" },
-  rose: { ring: "ring-rose-400/40", bg: "bg-rose-500/15", text: "text-rose-300", soft: "bg-rose-400/10 border-rose-400/20", grad: "from-rose-500 to-pink-400", hex: "#fb7185" },
-  amber: { ring: "ring-amber-400/40", bg: "bg-amber-500/15", text: "text-amber-300", soft: "bg-amber-400/10 border-amber-400/20", grad: "from-amber-500 to-yellow-400", hex: "#fbbf24" },
+/** Character palette — literal class strings so Tailwind can see them. */
+export const COLORS: Record<string, { text: string; soft: string; line: string; solid: string; hex: string; softHex: string }> = {
+  saffron: { text: "text-saffron", soft: "bg-saffron-soft", line: "border-saffron-line", solid: "bg-saffron", hex: "#e8590c", softHex: "#fff3ea" },
+  sage: { text: "text-sage", soft: "bg-sage-soft", line: "border-sage-line", solid: "bg-sage", hex: "#4d7c2a", softHex: "#eef5e6" },
+  indigo: { text: "text-indigo", soft: "bg-indigo-soft", line: "border-indigo-line", solid: "bg-indigo", hex: "#4f5bd5", softHex: "#eef0fd" },
+  rose: { text: "text-rose", soft: "bg-rose-soft", line: "border-rose-line", solid: "bg-rose", hex: "#cf3d5a", softHex: "#fdeef1" },
+  amber: { text: "text-amber", soft: "bg-amber-soft", line: "border-amber-line", solid: "bg-amber", hex: "#b7791f", softHex: "#fdf6e7" },
+  crew: { text: "text-ink", soft: "bg-subtle", line: "border-line-strong", solid: "bg-ink", hex: "#1e2033", softHex: "#f4f4f6" },
 };
-
-export const colorOf = (c?: string) => COLORS[c || "violet"] || COLORS.violet;
+// Older colour names map onto the new palette
+const ALIAS: Record<string, string> = { orange: "saffron", emerald: "sage", sky: "indigo", violet: "indigo" };
+export const colorOf = (c?: string) => COLORS[ALIAS[c || ""] || c || "indigo"] || COLORS.indigo;
 
 export const PRIORITY_STYLE: Record<string, string> = {
-  urgent: "bg-rose-500/15 text-rose-300 border-rose-400/25",
-  high: "bg-orange-500/15 text-orange-300 border-orange-400/25",
-  medium: "bg-violet-500/15 text-violet-300 border-violet-400/25",
-  low: "bg-slate-500/15 text-slate-300 border-slate-400/25",
+  urgent: "bg-rose-soft text-rose border-rose-line",
+  high: "bg-saffron-soft text-saffron border-saffron-line",
+  medium: "bg-indigo-soft text-indigo border-indigo-line",
+  low: "bg-subtle text-ink-2 border-line",
 };
 
-export const CATEGORY_EMOJI: Record<string, string> = {
-  health: "💧", fitness: "🏃", learning: "📚", finance: "📈", career: "💼", mindfulness: "🧘",
-  lifestyle: "🌱", productivity: "⚡", social: "🤝", other: "✨",
+export const CATEGORY_ICON: Record<string, LucideIcon> = {
+  health: HeartPulse, fitness: Dumbbell, learning: BookOpen, finance: TrendingUp, career: Briefcase,
+  mindfulness: Wind, lifestyle: Sprout, productivity: Zap, social: Users, other: Sparkles,
 };
 
 export const MOOD_SCORE: Record<string, number> = {
-  happy: 9, excited: 9, joyful: 9, grateful: 8, proud: 8, motivated: 8, calm: 7, content: 7, relaxed: 7, hopeful: 7,
-  neutral: 5, curious: 6, okay: 5, bored: 4, confused: 4, tired: 3, stressed: 2, anxious: 2, frustrated: 2, sad: 2,
-  angry: 1, overwhelmed: 2, lonely: 2, guilty: 3,
+  happy: 9, excited: 9, joyful: 9, grateful: 8, proud: 8, motivated: 8, determined: 8, calm: 7, content: 7, relaxed: 7,
+  hopeful: 7, neutral: 5, curious: 6, okay: 5, mixed: 5, bored: 4, confused: 4, tired: 3, lazy: 4, stressed: 2,
+  anxious: 2, frustrated: 2, sad: 2, angry: 1, overwhelmed: 2, lonely: 2, guilty: 3,
 };
 
 export function timeAgo(iso: string) {
@@ -52,23 +84,32 @@ export function greeting() {
   return "Good evening";
 }
 
-export const NODE_META: Record<string, { icon: string; color: string }> = {
-  load_context: { icon: "📥", color: "#94a3b8" },
-  classify: { icon: "🧭", color: "#a78bfa" },
-  safety_guard: { icon: "🛡️", color: "#f87171" },
-  progress_update: { icon: "✅", color: "#34d399" },
-  goal_validator: { icon: "⚖️", color: "#fbbf24" },
-  web_search: { icon: "🌐", color: "#38bdf8" },
-  goal_planner: { icon: "🗺️", color: "#f472b6" },
-  memory_retrieval: { icon: "🧠", color: "#c084fc" },
-  responder: { icon: "💬", color: "#e879f9" },
-  post_process: { icon: "💾", color: "#94a3b8" },
-  bg_input: { icon: "🗂️", color: "#94a3b8" },
-  job_router: { icon: "🔀", color: "#94a3b8" },
-  extraction: { icon: "✍️", color: "#c084fc" },
-  compression: { icon: "🗜️", color: "#60a5fa" },
-  behaviour: { icon: "📊", color: "#34d399" },
-  adaptation: { icon: "✨", color: "#fbbf24" },
-  life_event: { icon: "🌤️", color: "#fb923c" },
-  reflection: { icon: "🪞", color: "#f472b6" },
+export function dueLabel(daysLeft: number) {
+  if (daysLeft < -1) return `${-daysLeft} days overdue`;
+  if (daysLeft === -1) return "due yesterday";
+  if (daysLeft === 0) return "due today";
+  if (daysLeft === 1) return "due tomorrow";
+  return `in ${daysLeft} days`;
+}
+
+export const NODE_META: Record<string, { icon: LucideIcon; color: string }> = {
+  load_context: { icon: Database, color: "#8b8e9c" },
+  classify: { icon: ScanSearch, color: "#4f5bd5" },
+  safety_guard: { icon: ShieldCheck, color: "#cf3d5a" },
+  progress_update: { icon: ListChecks, color: "#4d7c2a" },
+  commitments: { icon: Handshake, color: "#b7791f" },
+  goal_validator: { icon: Scale, color: "#b7791f" },
+  web_search: { icon: Globe, color: "#4f5bd5" },
+  goal_planner: { icon: Map, color: "#e8590c" },
+  memory_retrieval: { icon: Brain, color: "#4f5bd5" },
+  responder: { icon: MessageSquareText, color: "#1e2033" },
+  post_process: { icon: Save, color: "#8b8e9c" },
+  bg_input: { icon: Layers, color: "#8b8e9c" },
+  job_router: { icon: Route, color: "#8b8e9c" },
+  extraction: { icon: PenLine, color: "#4f5bd5" },
+  compression: { icon: FileSearch, color: "#8b8e9c" },
+  behaviour: { icon: Activity, color: "#4d7c2a" },
+  adaptation: { icon: Sparkles, color: "#b7791f" },
+  life_event: { icon: Sun, color: "#e8590c" },
+  reflection: { icon: CalendarCheck, color: "#cf3d5a" },
 };

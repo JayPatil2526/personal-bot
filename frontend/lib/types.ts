@@ -28,6 +28,8 @@ export interface Character {
   is_preset: boolean;
   bond_level: "new" | "friend" | "close";
   messages_count: number;
+  is_group?: boolean;
+  crew?: Character[];
   life_events?: { title: string; description: string; emotion: string; shared: boolean; created_at: string }[];
 }
 
@@ -82,7 +84,7 @@ export interface Source {
 }
 
 export interface Chip {
-  type: "goal" | "memory" | "web" | "progress" | "safety" | "crew";
+  type: "goal" | "memory" | "web" | "progress" | "safety" | "crew" | "promise";
   text: string;
 }
 
@@ -124,6 +126,7 @@ export interface ChatMessage {
 export interface SessionSummary {
   id: number;
   title: string;
+  is_group: boolean;
   updated_at: string;
   character: Pick<Character, "id" | "name" | "avatar" | "color">;
   last_message: string;
@@ -132,6 +135,7 @@ export interface SessionSummary {
 export interface SessionDetail {
   id: number;
   title: string;
+  is_group: boolean;
   character: Character;
   messages: ChatMessage[];
 }
@@ -180,4 +184,49 @@ export interface Trace {
   output_tokens: number;
   providers: string[];
   created_at: string;
+}
+
+export interface Promise_ {
+  id: number;
+  text: string;
+  due_date: string;
+  status: "pending" | "kept" | "broken";
+  days_left: number;
+  character: { name: string; avatar: string; color: string } | null;
+  followed_up: boolean;
+  resolved_at: string | null;
+  created_at: string;
+}
+
+export interface WeeklyReport {
+  period_start: string;
+  period_end: string;
+  generated_at: string;
+  stats: {
+    period: { start: string; end: string };
+    completion: { this_week: number | null; last_week: number | null; change: number | null };
+    days: { day: string; label: string; done: number; planned: number; rate: number | null; partial: boolean }[];
+    best_weekday: string | null;
+    streaks: { best_current: number; best_ever: number };
+    mood: {
+      average: number | null;
+      top: [string, number][];
+      todos_on_good_days: number | null;
+      todos_on_low_days: number | null;
+      correlation: number | null;
+      days_with_mood: number;
+    };
+    promises: { total: number; kept: number; broken: number; pending: number; kept_rate: number | null; items: { text: string; status: string; due: string }[] };
+    goals: { id: number; title: string; category: string; progress: number; streak: number; week_done: number; week_planned: number; week_rate: number }[];
+    memory: { episodes: number; new_facts: number; themes: [string, number][] };
+    conversations: { character: string; messages: number }[];
+  };
+  narrative: {
+    headline: string;
+    summary: string;
+    wins: string[];
+    struggles: string[];
+    focus_next_week: string;
+    crew: { name: string; comment: string }[];
+  };
 }
