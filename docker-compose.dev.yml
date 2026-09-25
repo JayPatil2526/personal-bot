@@ -1,0 +1,23 @@
+# Development overrides: exposed DB port, live-reload backend, Next.js dev server.
+services:
+  db:
+    ports:
+      - "5433:5432"   # EXPOSED IN DEV (host 5433 avoids clashing with a local Postgres)
+
+  backend:
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - ./backend:/app
+    environment:
+      APP_ENV: development
+
+  frontend:
+    build:
+      context: ./frontend
+      target: deps
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
