@@ -1,0 +1,160 @@
+{
+  "experiment": "trace_stats",
+  "generated_at": "2026-09-25T13:42:20+00:00",
+  "traces_by_kind": {
+    "chat": 32,
+    "background": 32,
+    "goal_preview": 1
+  },
+  "chat_turns": 32,
+  "distinct_users": 3,
+  "period": [
+    "2026-09-25T09:32+00:00",
+    "2026-09-25T12:12+00:00"
+  ],
+  "chat_total_ms": {
+    "mean_ms": 7332.8,
+    "median_ms": 6209.2,
+    "p90_ms": 12181.3,
+    "min_ms": 2970.9,
+    "max_ms": 19166.6
+  },
+  "chat_ms_excluding_responder": {
+    "mean_ms": 3483.1,
+    "median_ms": 2031.5,
+    "p90_ms": 8146.6,
+    "min_ms": 1065.8,
+    "max_ms": 9300.3
+  },
+  "avg_input_tokens_per_turn": 3404.7,
+  "avg_output_tokens_per_turn": 256.2,
+  "avg_llm_calls_per_turn": 2.25,
+  "avg_nodes_per_turn": 6.22,
+  "node_ms": {
+    "responder": {
+      "runs": 32,
+      "mean_ms": 3849.7,
+      "median_ms": 3215.2
+    },
+    "web_search": {
+      "runs": 5,
+      "mean_ms": 2632.2,
+      "median_ms": 1654.4
+    },
+    "memory_retrieval": {
+      "runs": 17,
+      "mean_ms": 1725.1,
+      "median_ms": 851.5
+    },
+    "goal_planner": {
+      "runs": 4,
+      "mean_ms": 1712.3,
+      "median_ms": 1686.2
+    },
+    "classify": {
+      "runs": 32,
+      "mean_ms": 1691.4,
+      "median_ms": 1240.5
+    },
+    "goal_validator": {
+      "runs": 4,
+      "mean_ms": 1538.3,
+      "median_ms": 1622.0
+    },
+    "progress_update": {
+      "runs": 5,
+      "mean_ms": 49.8,
+      "median_ms": 47.0
+    },
+    "load_context": {
+      "runs": 32,
+      "mean_ms": 34.0,
+      "median_ms": 28.6
+    },
+    "commitments": {
+      "runs": 4,
+      "mean_ms": 14.3,
+      "median_ms": 5.2
+    },
+    "post_process": {
+      "runs": 32,
+      "mean_ms": 14.1,
+      "median_ms": 11.4
+    },
+    "safety_guard": {
+      "runs": 32,
+      "mean_ms": 0.0,
+      "median_ms": 0.0
+    }
+  },
+  "fallback_turn_share": 0.25,
+  "fallback_llm_node_share": 0.111,
+  "llm_node_providers": {
+    "gemini:gemini-2.5-flash-lite": 40,
+    "gemini:gemini-2.5-flash": 32
+  },
+  "classified_intents": {
+    "chit_chat": 12,
+    "new_goal": 6,
+    "progress_report": 5,
+    "ask_info": 3,
+    "memory_question": 2,
+    "emotional": 2,
+    "goal_question": 2
+  },
+  "top_routes": {
+    "load_context → classify → safety_guard → responder → post_process": 13,
+    "load_context → classify → safety_guard → memory_retrieval → responder → post_process": 5,
+    "load_context → classify → safety_guard → progress_update → memory_retrieval → responder → post_process": 4,
+    "load_context → classify → safety_guard → web_search → responder → post_process": 2,
+    "load_context → classify → safety_guard → goal_validator → web_search → goal_planner → memory_retrieval → responder → post_process": 2,
+    "load_context → classify → safety_guard → commitments → memory_retrieval → responder → post_process": 2,
+    "load_context → classify → safety_guard → goal_validator → goal_planner → memory_retrieval → responder → post_process": 1,
+    "load_context → classify → safety_guard → web_search → memory_retrieval → responder → post_process": 1
+  },
+  "background_total_ms": {
+    "mean_ms": 2525.9,
+    "median_ms": 2524.4,
+    "p90_ms": 4821.9,
+    "min_ms": 9.6,
+    "max_ms": 11203.6
+  },
+  "background_node_ms": {
+    "compression": {
+      "runs": 2,
+      "mean_ms": 4190.9,
+      "median_ms": 4190.9
+    },
+    "extraction": {
+      "runs": 21,
+      "mean_ms": 2920.9,
+      "median_ms": 2682.1
+    },
+    "reflection": {
+      "runs": 2,
+      "mean_ms": 2319.8,
+      "median_ms": 2319.8
+    },
+    "adaptation": {
+      "runs": 1,
+      "mean_ms": 1609.2,
+      "median_ms": 1609.2
+    },
+    "behaviour": {
+      "runs": 2,
+      "mean_ms": 1433.6,
+      "median_ms": 1433.6
+    },
+    "life_event": {
+      "runs": 1,
+      "mean_ms": 1276.0,
+      "median_ms": 1276.0
+    },
+    "bg_input": {
+      "runs": 32,
+      "mean_ms": 22.4,
+      "median_ms": 15.1
+    }
+  },
+  "runtime_s": 0.0
+}
